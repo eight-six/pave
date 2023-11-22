@@ -1,0 +1,5 @@
+dependencies:
+  - name: bs-no-admin
+  - name: bs-pwsh
+  - name: pwsh-profiles
+  - name: pwsh-scripts
