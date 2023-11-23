@@ -1,12 +1,11 @@
 param (
+    [string]$PwshVersion = "7.4.0",
+    [string]$NugetMinVersion = "2.8.5.201",
     [switch]$InstallWindowsTerminal
 )
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
-
-$PwshVersion = "7.3.9"
-$NugetMinVersion = "2.8.5.201"
 
 if($InstallWindowsTerminal.IsPresent){
     .\Install-StorageExplorer.ps1
