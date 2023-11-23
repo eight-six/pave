@@ -1,3 +1,6 @@
+param (
+    [switch]$InstallWindowsTerminal
+)
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
@@ -5,6 +8,10 @@ $InformationPreference = 'Continue'
 $PwshVersion = "7.3.9"
 $NugetMinVersion = "2.8.5.201"
 
+if($InstallWindowsTerminal.IsPresent){
+    .\Install-StorageExplorer.ps1
+}
+    
 & "$PSScriptRoot\Install-Pwsh.ps1" -Version $PwshVersion
 
 $LogMessage = "bootstrap: installing nuget >= $NugetMinVersion"
