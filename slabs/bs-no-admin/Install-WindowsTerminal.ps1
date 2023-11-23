@@ -24,7 +24,7 @@ $VerbosePreference = 'Continue'
 
 Set-StrictMode  -Version 'latest'
 
-if(Get-Process -Name 'WindowsTerminal'){
+if(Get-Process -Name 'WindowsTerminal' -ea 'Ignore'){
     throw 'Cannot install Windows Terminal when there is a running instance. Please close Windows Terminal'
 }
 
