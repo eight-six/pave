@@ -1,3 +1,5 @@
+#Requires -PSEdition Desktop
+
 param (
     [string]$PwshVersion = "7.4.0",
     [string]$NugetMinVersion = "2.8.5.201",
