@@ -1,13 +1,10 @@
 
 # $Script:Remote = $Env:PAVE_REMOTE ?? 'https://pave.eightsix.io/public/latest'
-$Script:Remote = $Env:PAVE_REMOTE ?? 'https://eightsixpaveprodstg.blob.core.windows.net/public/latest'
-$Script:Cache = $Env:PAVE_CACHE ?? (Join-Path $HOME 'pave' 'slabs')
-
+# $Script:Remote = $Env:PAVE_REMOTE ?? 'https://eightsixpaveprodstg.blob.core.windows.net/public/latest'
+# $Script:Cache = $Env:PAVE_CACHE ?? (Join-Path $HOME 'pave' 'slabs')
+$Script:Remote = if ($Env:PAVE_REMOTE) { $Env:PAVE_REMOTE }else { 'https://eightsixpaveprodstg.blob.core.windows.net/public/latest' }
+$Script:Cache = if ($Env:PAVE_CACHE) { $Env:PAVE_CACHE }else { Join-Path (Join-Path $HOME 'pave') 'slabs' }
 $ErrorActionPreference = 'Stop'
-
-$Script:InstalledSlabs = @()
-
-
 
 function Get-Remote {
     param(
