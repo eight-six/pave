@@ -20,7 +20,7 @@ function Set-Remote {
         [Parameter(Mandatory = $true)]
         [string]$Remote
     )
-    
+
     $Script:Remote = $Remote
 }
 
@@ -72,7 +72,7 @@ function Find-Slab {
         [string]$Name
     )
     begin {
-        $Slabs = (iwr "$Env:PAVE_REMOTE/slabs/.index" | select -exp content ) -split '\r{0,1}\n'
+        $Slabs = (iwr "$Script:Remote/slabs/.index" | select -exp content ) -split '\r{0,1}\n'
     }
     process {
         if ($Name) {
