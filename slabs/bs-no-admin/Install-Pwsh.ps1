@@ -46,7 +46,7 @@
 #> 
 param (
     [ValidatePattern('7\.\d+\.\d+')]
-    [string]$Version = '7.3.8',
+    [string]$Version = '7.4.0',
     [string]$InstallPath = "$env:LOCALAPPDATA\powershell",
     [string]$DownloadRoot = 'https://github.com/PowerShell/PowerShell/releases/download'
 )
