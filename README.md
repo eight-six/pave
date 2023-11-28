@@ -3,16 +3,29 @@
 Get the pave module
 
 ```pwsh
+cd $HOME 
 Start-BitsTransfer 'https://eightsixpaveprodstg.blob.core.windows.net/public/latest/pwsh-pave.zip' 
 Expand-Archive '.\pwsh-pave.zip' './powershell/modules/pave'
 rm '.\pwsh-pave.zip'
 Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser'
 ```
 
+If you are going to install with winget (recommended if you can elevate) then its worth running your PowerShell as admin to avoid approving all the UAC prompts.
+
+```pwsh
+Start-Process powershell -Verb runAs
+```
+
 Install module
 
 ```pwsh
 Import-Module pave
+```
+
+on WIndows Powershell you may have to import the psm1 file:
+
+```pwsh
+Import-Module $HOME/powershell/modules/pave/pave.psm1
 ```
 
 Check remote repo location
