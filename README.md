@@ -21,7 +21,7 @@ Check remote repo location
 Get-Remote
 ```
 
-```pwsh
+```text
 https://eightsixpaveprodstg.blob.core.windows.net/public/latest
 ```
 
@@ -31,14 +31,14 @@ Check local cache location
 Get-Cache
 ```
 
-```
+```text
 C:\Users\StevenRose\pave\slabs
 ```
 
 Set remote repo location
 
 ```pwsh
-Set-Remote https://pave.eightsix.io/public/latest
+Set-Remote 'https://pave.eightsix.io/public/latest'
 ```
 
 Set local cache location
@@ -94,5 +94,5 @@ bs
 Deploy a slab - some slabs e.g. `pwsh-profiles` are designed to be deployed after install - these will have a `deploy.ps1` script in the root of the slab.  A quick way to deploy this type of slab is to use the `Deploy-Slab` cmdlet:
 
 ```pwsh
-Deploy-Slab 
+Deploy-Slab 'pwsh-profiles'
 ```
