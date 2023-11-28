@@ -1,0 +1,48 @@
+{
+	"$schema" : "https://aka.ms/winget-packages.schema.2.0.json",
+	"CreationDate" : "2023-11-10T09:32:40.070-00:00",
+	"Sources" : 
+	[
+		{
+			"Packages" : 
+			[
+				{
+					"PackageIdentifier" : "JanDeDobbeleer.OhMyPosh",
+					"Scope": "user"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.Azure.StorageExplorer",
+					"Scope": "user"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.AzureDataStudio",
+					"Scope": "user"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.PowerToys",
+					"Scope": "user"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.VisualStudioCode.Insiders",
+					"Scope": "user"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.WindowsTerminal",
+					"Scope": "user"
+				},
+				{
+					"PackageIdentifier" : "Python.Python.3.12",
+					"Scope": "user"
+				}
+			],
+			"SourceDetails" : 
+			{
+				"Argument" : "https://cdn.winget.microsoft.com/cache",
+				"Identifier" : "Microsoft.Winget.Source_8wekyb3d8bbwe",
+				"Name" : "winget",
+				"Type" : "Microsoft.PreIndexed.Package"
+			}
+		}
+	],
+	"WinGetVersion" : "1.6.2771"
+}

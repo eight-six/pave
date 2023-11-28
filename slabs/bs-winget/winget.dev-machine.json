@@ -1,0 +1,51 @@
+{
+	"$schema" : "https://aka.ms/winget-packages.schema.2.0.json",
+	"CreationDate" : "2023-11-10T09:32:40.070-00:00",
+	"Sources" : 
+	[
+		{
+			"Packages" : 
+			[
+				{
+					"PackageIdentifier" : "GitHub.cli",
+					"Scope": "machine"
+				},
+				{
+					"PackageIdentifier" : "Git.Git",
+					"Scope": "machine"
+
+				},
+				{
+					"PackageIdentifier" : "Microsoft.AzureCLI",
+					"Scope": "machine"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.PowerShell",
+					"Scope": "machine"
+				},
+				{
+					"PackageIdentifier" : "Neovim.Neovim",
+					"Scope": "machine"
+				},
+				{
+					"PackageIdentifier" : "Perimeter81Ltd.Perimeter81Ltd"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.DotNet.Runtime.6"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.DotNet.SDK.7",
+					"Scope": "machine"
+				}
+			],
+			"SourceDetails" : 
+			{
+				"Argument" : "https://cdn.winget.microsoft.com/cache",
+				"Identifier" : "Microsoft.Winget.Source_8wekyb3d8bbwe",
+				"Name" : "winget",
+				"Type" : "Microsoft.PreIndexed.Package"
+			}
+		}
+	],
+	"WinGetVersion" : "1.6.2771"
+}
