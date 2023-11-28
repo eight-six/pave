@@ -1,49 +1,31 @@
 
-$Script:Remote = $Env:PAVE_REMOTE ?? 'https://github.com/eight-six/pave.git'
-$Script:RemoteBranch = 'main'
-$Script:Cache = $Env:PAVE_CACHE ?? (Join-Path $HOME 'pave' 'slabs')
-
+# $Script:Remote = $Env:PAVE_REMOTE ?? 'https://pave.eightsix.io/public/latest'
+# $Script:Remote = $Env:PAVE_REMOTE ?? 'https://eightsixpaveprodstg.blob.core.windows.net/public/latest'
+# $Script:Cache = $Env:PAVE_CACHE ?? (Join-Path $HOME 'pave' 'slabs')
+$Script:Remote = if ($Env:PAVE_REMOTE) { $Env:PAVE_REMOTE }else { 'https://eightsixpaveprodstg.blob.core.windows.net/public/latest' }
+$Script:Cache = if ($Env:PAVE_CACHE) { $Env:PAVE_CACHE }else { Join-Path (Join-Path $HOME 'pave') 'slabs' }
 $ErrorActionPreference = 'Stop'
 
-$Script:RepoCache = Join-Path $Env:Temp ([System.IO.Path]::GetRandomFileName())
-$Script:RepoCachedAt = $null
-$Script:RepoCacheSecs = 60
+function Get-Remote {
+    param(
+    )
+    $Script:Remote
 
-$Script:AvailableSlabs = @()
-$Script:InstalledSlabs = @()
-
-function UpdateRepoCache {
-    $PSNativeCommandUseErrorActionPreference = $true
-    
-    if (!(Test-Path $Script:RepoCache) -or $null -eq $RepoCachedAt -or (Get-Date).Subtract($Script:RepoCachedAt).TotalSeconds -gt $Script:RepoCacheSecs ) {
-        Write-Verbose "Updating repo cache ``$Script:RepoCache``" -Verbose
-        if (Test-Path $Script:RepoCache) {
-            Remove-Item $Script:RepoCache -Recurse -Force
-        }
-        $Response = git clone $Script:Remote --branch=$Script:RemoteBranch --depth 1 $Script:RepoCache 2>&1
-        Write-Verbose $Response
-
-        $Script:RepoCachedAt = Get-Date
-        $Script:AvailableSlabs = Get-ChildItem "$Script:RepoCache/slabs" -Directory | Select-Object -exp name
-    }
-    else {
-        Write-Verbose "Using cached repo ``$Script:RepoCache``" -Verbose
-    }
 }
-
-function UpdateInstalledSlabs {
-    Write-Verbose "Updating installed slabs ``$Script:Cache``" -Verbose
-
-    $Script:InstalledSlabs = Get-ChildItem "$Script:Cache" -Directory | Select-Object -exp name
-}
-
 function Set-Remote {
     param(
         [Parameter(Mandatory = $true)]
         [string]$Remote
     )
-    $Script:Remote = $Remote
 
+    $Script:Remote = $Remote
+}
+
+function Get-Cache {
+    param(
+    )
+
+    $Script:Cache
 }
 
 function Set-Cache {
@@ -87,23 +69,19 @@ function Find-Slab {
         [string]$Name
     )
     begin {
-        UpdateRepoCache
+        $Slabs = (iwr "$Script:Remote/slabs/.index" | select -exp content ) -split '\r{0,1}\n'
     }
     process {
-        $Path = Join-Path $Script:RepoCache 'slabs'
-        $PathPath = Join-Path $Path $Name
-
         if ($Name) {
-            if (Test-Path "$PathPath") {
-                Write-Verbose "$PathPath exists" -Verbose
-                ls "$Path" -Name $Name -Directory | select -exp PSChildName
+            if ($Slabs -contains $Name) {
+                $Name
             }
             else {
-                throw "Slab ``$Name`` not found in cache ``$Path``"
+                throw "Slab ``$Name`` not found."
             }
         }
         else {
-            $Script:AvailableSlabs
+            $Slabs
         }
     }
     end {
@@ -123,7 +101,7 @@ function Get-Slab {
         #$PSBoundParameters
         if ($Name) {
             if (Test-Path "$Script:Cache/$Name") {
-                Write-Verbose "$Script:Cache/$Name exists" -Verbose
+                Write-Verbose "$Script:Cache/slabs/$Name exists" -Verbose
                 ls "$Script:Cache" -Name $Name -Directory | select -exp PSChildName
             }
             else {
@@ -146,7 +124,6 @@ function Install-Slab {
     )
     
     begin {
-        UpdateRepoCache
         
         if (!(Test-Path $Script:Cache)) {
             mkdir $Script:Cache
@@ -155,16 +132,16 @@ function Install-Slab {
 
     process {
         $Name | ForEach-Object {
-            if (Test-Path "$Script:Cache/$Name") {
-                rm "$Script:Cache/$Name" -Recurse -Force
-            }
+            $Uri = "$Script:Remote/slabs/$Name.zip"
 
-            Copy-Item "$Script:RepoCache/$Name" "$Script:Cache/" -Recurse
+            Start-BitsTransfer $Uri "$Script:Cache/"
+            Expand-Archive "$Script:Cache/$Name.zip" "$Script:Cache/$Name" -Force 
+            rm "$Script:Cache/$Name.zip"
         }
     }
     
     end {
-        UpdateInstalledSlabs
+        
     }
 }
 
@@ -190,24 +167,22 @@ function Uninstall-Slab {
     }
 
     end {
-        UpdateInstalledSlabs
     }
 }
 
-UpdateInstalledSlabs
 
 'Deploy-Slab', 'Get-Slab', 'Uninstall-Slab' | ForEach-Object {
     Register-ArgumentCompleter -CommandName $_ -ParameterName 'Name' -ScriptBlock {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-        $Script:InstalledSlabs | Where-Object { $_ -like "$wordToComplete*" }
+        Get-ChildItem "$Script:Cache" -Directory | Select-Object -exp name | Where-Object { $_ -like "$wordToComplete*" }
     }
 }
 
-'Find-Slab', 'Install-Slab' | ForEach-Object {
-    Register-ArgumentCompleter -CommandName $_ -ParameterName 'Name' -ScriptBlock {
-        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-        $Script:AvailableSlabs | Where-Object { $_ -like "$wordToComplete*" }
-    }
-}
+# 'Find-Slab', 'Install-Slab' | ForEach-Object {
+#     Register-ArgumentCompleter -CommandName $_ -ParameterName 'Name' -ScriptBlock {
+#         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+#         $Script:AvailableSlabs | Where-Object { $_ -like "$wordToComplete*" }
+#     }
+# }
 
-Export-ModuleMember -Function 'Deploy-Slab', 'Find-Slab', 'Get-Slab', 'Install-Slab', 'Set-Cache', 'Set-Remote', 'Uninstall-Slab'
+Export-ModuleMember -Function 'Deploy-Slab', 'Find-Slab', 'Get-Slab', 'Get-Cache', 'Get-Remote', 'Install-Slab', 'Set-Cache', 'Set-Remote', 'Uninstall-Slab'
