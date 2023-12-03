@@ -40,6 +40,5 @@ jobs:
       - name: Upload Release Asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: ${{ github.workspace }}/artifacts
         run:
-          gh release upload ${{ github.event.release.tag_name }} ./pave-full-v${{ github.event.release.tag_name }}.zip
+          gh release upload ${{ github.event.release.tag_name }} ${{ github.workspace }}/artifacts/pave-full-v${{ github.event.release.tag_name }}.zip
