@@ -1,5 +1,7 @@
 
 $BuildDir = '$PSScriptRoot/../build'
+$ModuleName = 'pave'
+$ModuleBuildPath = "$BuildDir/$ModuleName"
 
 if(!(Test-Path $BuildDir)){
     mkdir $BuildDir
@@ -7,6 +9,10 @@ if(!(Test-Path $BuildDir)){
 
 if(!(Test-Path "$BuildDir/slabs")){
     mkdir "$BuildDir/slabs"
+}
+
+if(!(Test-Path $ModuleBuildPath)){
+    mkdir $ModuleBuildPath
 }
 
 $Index = @()
@@ -18,6 +24,11 @@ ls -Directory "$PSScriptRoot/../slabs" | % {
 
 $Index | Out-File "$BuildDir/slabs/.index"
 
-Compress-Archive "$PSScriptRoot/../pwsh/*" "$BuildDir/pwsh-pave.zip" -Force 
+cp "$PSScriptRoot/../pwsh/*" $ModuleBuildPath -recurse
+
+Compress-Archive -path "$ModuleBuildPath/*"  -Destination "$BuildDir/pave.zip" -Force 
+
+rm $ModuleBuildPath -recurse -force
+
 
 
