@@ -22,12 +22,6 @@ Install module
 Import-Module pave
 ```
 
-on WIndows Powershell you may have to import the psm1 file:
-
-```pwsh
-Import-Module $HOME/powershell/modules/pave/pave.psm1
-```
-
 Check remote repo location
 
 ```pwsh
