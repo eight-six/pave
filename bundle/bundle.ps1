@@ -20,7 +20,7 @@ if(!(Test-Path $ModuleBuildPath)){
 
 $Index = @()
 
-ls -Directory "$PSScriptRoot/../slabs" | % {
+Get-ChildItem -Directory "$PSScriptRoot/../slabs" | % {
     $Index += $_.Name
     Compress-Archive "$($_.FullName)/*" "$BuildDir/slabs/$($_.Name).zip" -Force 
 }
@@ -29,11 +29,11 @@ $Index | Out-File "$BuildDir/slabs/.index"
 
 Update-ModuleManifest -Path "$ModuleSourcePath/pave.psd1" -ModuleVersion $ModuleVersion 
 
-cp "$ModuleSourcePath/*" $ModuleBuildPath -recurse
+Copy-Item "$ModuleSourcePath/*" $ModuleBuildPath -recurse
 
 Compress-Archive -path "$ModuleBuildPath"  -Destination "$BuildDir/$ModuleName .zip" -Force 
 
-rm $ModuleBuildPath -recurse -force
+Remove-Item $ModuleBuildPath -recurse -force
 
 
 
