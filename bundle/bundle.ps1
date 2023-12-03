@@ -27,7 +27,7 @@ Get-ChildItem -Directory "$PSScriptRoot/../slabs" | % {
     Compress-Archive "$($_.FullName)/*" "$BuildDir/slabs/$($_.Name).zip" -Force 
 }
 
-$Index | Out-File "$BuildDir/slabs/.index"
+$Index | Out-File "$BuildDir/slabs/~index"
 
 Update-ModuleManifest -Path "$ModuleSourcePath/pave.psd1" -ModuleVersion $ModuleVersion 
 

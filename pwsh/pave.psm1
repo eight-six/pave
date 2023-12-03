@@ -70,9 +70,9 @@ function Find-Slab {
     )
     begin {
         $TempFile = New-TemporaryFile
-        $IndexUri = "$Script:Remote/slabs/.index"
+        $IndexUri = "$Script:Remote/slabs/~index"
         Write-Verbose "Getting index from $IndexUri"
-        Start-BitsTransfer "$Script:Remote/slabs/.index" $TempFile.FullName
+        Start-BitsTransfer $IndexUri $TempFile.FullName
         $Slabs = cat $TempFile.FullName
     }
     process {
