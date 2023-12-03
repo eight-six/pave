@@ -27,18 +27,19 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v3.1.3
         with:
-          name: pave-full-v${{ secrets.GITHUB_TOKEN }}.zip
+          name: pave-full-v${{github.event.release.tag_name}}.zip
           path: ./build/
           if-no-files-found: error 
           
       - name: Download build artifact
         uses: actions/download-artifact@v3
         with:
-          name: pave-full-v${{ secrets.GITHUB_TOKEN }}.zip
-          path: ${{ github.workspace }}/articfacts
+          name: pave-full-v${{github.event.release.tag_name }}.zip
+          path: ${{ github.workspace }}/artifacts
 
       - name: Upload Release Asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ${{ github.workspace }}/artifacts
         run:
-          gh release upload ${{ github.event.release.tag_name }} ./artifacts/pave-full-v${{ secrets.GITHUB_TOKEN }}.zip
+          gh release upload ${{ github.event.release.tag_name }} ./pave-full-v${{ github.event.release.tag_name }}.zip
