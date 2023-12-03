@@ -35,7 +35,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: pave-full-v${{ secrets.GITHUB_TOKEN }}.zip
-          path: .
+          path: ${{ github.workspace }}/articfacts
 
       - name: Upload Release Asset
         env:
