@@ -1,10 +1,12 @@
 $ErrorActionPreference = 'Stop'
 
 $BuildDir = "$PSScriptRoot/../build"
-$ModuleName = 'pave'
 $ModuleVersion = $Env:BUILD_MODULE_VERSION ??  '0.0.0'
+$ModuleName = 'pave-module'
+$ModuleFilePath = "$ModuleName-v$ModuleVersion.zip"
 $ModuleBuildPath = "$BuildDir/$ModuleVersion"
 $ModuleSourcePath = "$PSScriptRoot/../pwsh"
+$BundleFilePath = "$BuildDir/pave-full-v$ModuleVersion.zip"
 
 if(!(Test-Path $BuildDir)){
     mkdir $BuildDir
@@ -31,9 +33,13 @@ Update-ModuleManifest -Path "$ModuleSourcePath/pave.psd1" -ModuleVersion $Module
 
 Copy-Item "$ModuleSourcePath/*" $ModuleBuildPath -recurse
 
-Compress-Archive -path "$ModuleBuildPath"  -Destination "$BuildDir/$ModuleName.zip" -Force 
+Compress-Archive -path "$ModuleBuildPath"  -Destination "$BuildDir/$ModuleFilePath" -Force 
 
 Remove-Item $ModuleBuildPath -recurse -force
+
+
+Compress-Archive -path "$BuildDir/*" -Destination $BundleFilePath -Force 
+
 
 
 
