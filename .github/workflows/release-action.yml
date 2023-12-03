@@ -17,6 +17,7 @@ jobs:
       - name: bundle the solution
         env:
           BUILD_MODULE_VERSION: ${{ github.event.release.tag_name }}
+        shell: pwsh
         run: |
           chmod +x ./bundle/clean.ps1
           chmod +x ./bundle/bundle.ps1
