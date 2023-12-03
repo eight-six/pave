@@ -185,4 +185,4 @@ function Uninstall-Slab {
 #     }
 # }
 
-Export-ModuleMember -Function 'Deploy-Slab', 'Find-Slab', 'Get-Slab', 'Get-Cache', 'Get-Remote', 'Install-Slab', 'Set-Cache', 'Set-Remote', 'Uninstall-Slab'
+
