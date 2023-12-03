@@ -1,7 +1,10 @@
+$ErrorActionPreference = 'Stop'
 
-$BuildDir = '$PSScriptRoot/../build'
+$BuildDir = "$PSScriptRoot/../build"
 $ModuleName = 'pave'
-$ModuleBuildPath = "$BuildDir/$ModuleName"
+$ModuleVersion = $Env:BUILD_MODULE_VERSION ??  '0.0.0'
+$ModuleBuildPath = "$BuildDir/$ModuleVersion"
+$ModuleSourcePath = "$PSScriptRoot/../pwsh"
 
 if(!(Test-Path $BuildDir)){
     mkdir $BuildDir
@@ -24,9 +27,11 @@ ls -Directory "$PSScriptRoot/../slabs" | % {
 
 $Index | Out-File "$BuildDir/slabs/.index"
 
-cp "$PSScriptRoot/../pwsh/*" $ModuleBuildPath -recurse
+Update-ModuleManifest -Path "$ModuleSourcePath/pave.psd1" -ModuleVersion $ModuleVersion 
 
-Compress-Archive -path "$ModuleBuildPath/*"  -Destination "$BuildDir/pave.zip" -Force 
+cp "$ModuleSourcePath/*" $ModuleBuildPath -recurse
+
+Compress-Archive -path "$ModuleBuildPath"  -Destination "$BuildDir/$ModuleName .zip" -Force 
 
 rm $ModuleBuildPath -recurse -force
 
