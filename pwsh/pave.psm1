@@ -69,7 +69,11 @@ function Find-Slab {
         [string]$Name
     )
     begin {
-        $Slabs = (iwr "$Script:Remote/slabs/.index" | select -exp content ) -split '\r{0,1}\n'
+        $TempFile = New-TemporaryFile
+        $IndexUri = "$Script:Remote/slabs/.index"
+        Write-Verbose "Getting index from $IndexUri"
+        Start-BitsTransfer "$Script:Remote/slabs/.index" $TempFile.FullName
+        $Slabs = cat $TempFile.FullName
     }
     process {
         if ($Name) {
@@ -133,8 +137,9 @@ function Install-Slab {
     process {
         $Name | ForEach-Object {
             $Uri = "$Script:Remote/slabs/$Name.zip"
-
+            Write-Verbose "downloading $Uri"
             Start-BitsTransfer $Uri "$Script:Cache/"
+            Write-Verbose "installing at $Script:Cache/$Name"
             Expand-Archive "$Script:Cache/$Name.zip" "$Script:Cache/$Name" -Force 
             rm "$Script:Cache/$Name.zip"
         }
