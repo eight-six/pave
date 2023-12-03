@@ -31,7 +31,7 @@ Update-ModuleManifest -Path "$ModuleSourcePath/pave.psd1" -ModuleVersion $Module
 
 Copy-Item "$ModuleSourcePath/*" $ModuleBuildPath -recurse
 
-Compress-Archive -path "$ModuleBuildPath"  -Destination "$BuildDir/$ModuleName .zip" -Force 
+Compress-Archive -path "$ModuleBuildPath"  -Destination "$BuildDir/$ModuleName.zip" -Force 
 
 Remove-Item $ModuleBuildPath -recurse -force
 
