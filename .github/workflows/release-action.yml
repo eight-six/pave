@@ -21,7 +21,8 @@ jobs:
           chmod +x ./bundle/bundle.ps1
           ./bundle/clean.ps1
           ./bundle/bundle.ps1
-            
+        working-directory: ${{ github.workspace }}
+
       - name: Upload release assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
