@@ -37,8 +37,14 @@ jobs:
           name: pave-full-v${{github.event.release.tag_name }}.zip
           path: ${{ github.workspace }}/artifacts
 
+      - name: List downloaded artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run:
+          ls -al '${{ github.workspace }}/artifacts/'
+      
       - name: Upload Release Asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run:
-          gh release upload ${{ github.event.release.tag_name }} ${{ github.workspace }}/artifacts/pave-full-v${{ github.event.release.tag_name }}.zip
+          gh release upload '${{ github.event.release.tag_name }}' '${{ github.workspace }}/artifacts/pave-full-v${{ github.event.release.tag_name }}.zip'
