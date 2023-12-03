@@ -1,0 +1,30 @@
+name: Release action
+# Call the reusable workflow release-solution-with-inputs.yml
+# Release your solution to prod when you create a new release.
+
+on:
+  release:
+      types: [created]        
+permissions:
+  contents: write
+jobs:
+  Release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: bundle the solution
+        env:
+          BUILD_MODULE_VERSION: ${{ github.event.release.tag_name }}
+        run: |
+          ./bundle/clean.ps1
+          ./bundle/bundle.ps1
+      
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.1.3
+        with:
+          # name: 
+          path: ./build/
+          if-no-files-found: error 
+  
