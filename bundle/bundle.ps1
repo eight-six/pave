@@ -33,12 +33,12 @@ Update-ModuleManifest -Path "$ModuleSourcePath/pave.psd1" -ModuleVersion $Module
 
 Copy-Item "$ModuleSourcePath/*" $ModuleBuildPath -recurse
 
-Compress-Archive -path "$ModuleBuildPath"  -Destination "$BuildDir/$ModuleFilePath" -Force 
+Compress-Archive -path "$ModuleBuildPath"  -Destination "$BuildDir/$ModuleFilePath" -Force -verbose
 
 Remove-Item $ModuleBuildPath -recurse -force
 
 
-Compress-Archive -path "$BuildDir/*" -Destination $BundleFilePath -Force 
+Compress-Archive -path "$BuildDir/*" -Destination $BundleFilePath -Force -verbose
 
 
 
