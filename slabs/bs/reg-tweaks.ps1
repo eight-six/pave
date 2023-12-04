@@ -21,5 +21,12 @@ sp -path $Path -Name 'SearchboxTaskbarMode' -Value 0 -Type 'DWord'
 $Path = 'HKCU:\Keyboard Layout\Toggle\'
 sp -path $Path -Name 'Hotkey' -Value 3 -Type 'String' 
 sp -path $Path -Name 'Language Hotkey' -Value 3 -Type 'String' 
-sp -path $Path -Name 'Layout Hotkey' -Value 3 -Type 'String' 
+sp -path $Path -Name 'Layout Hotkey' -Value 3 -Type 'String'
+
+
+# Default Terminal Application  
+# see https://support.microsoft.com/en-gb/windows/command-prompt-and-windows-powershell-for-windows-11-6453ce98-da91-476f-8651-5c14d5777c20
+$Path = 'HKCU:\Console\%%Startup\'
+sp -path $Path -Name 'DelegationConsole' -Value '{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}' -Type 'String' 
+sp -path $Path -Name 'DelegationTerminal' -Value '{E12CFF52-A866-4C77-9A90-F570A7AA2C6B}' -Type 'String' 
 
