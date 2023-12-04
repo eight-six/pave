@@ -1,7 +1,9 @@
+#Requires -PSEdition Core
+
 $PSStyle.Formatting.Debug = $PSStyle.Foreground.BrightBlue
 $PSStyle.Formatting.Warning = $PSStyle.Foreground.Magenta
 
-$em = $Env:PS_EMPH ?? '``'
+$em = $Env:PWSH_EMPH ?? '`'
 
 if ($IsWindows) {
     $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent() 
@@ -62,6 +64,15 @@ if ($env:PWSH_PROFILE_ADD_ALIASES) {
 if ($env:PWSH_PROFILE_ADD_FUNCTIONS) {
     . (Join-Path $PSScriptRoot 'functions.ps1')
 }
+
+# check winget for updates once a day
+$WingetCheckFilePath =  '~\.winget-check'
+
+if (!(Test-path  $WingetCheckFilePath) -or ((get-date).Date -ne (gci $WingetCheckFilePath ).LastWriteTime.Date)){
+    Write-Output "Checking winget for updates..."
+    '' > '~\.winget-check'
+    winget update
+} 
 
 # clean up
 Remove-Variable 'ScriptsToLoad'

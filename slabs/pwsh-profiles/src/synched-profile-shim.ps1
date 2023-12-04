@@ -1,10 +1,12 @@
+#Requires -PSEdition Core
+
 # This profile is synced accross devices by OneDrive
 
 Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Verbose
 
 # uncomment/amend this to change emph chars in write-* messages
 #$Env:PWSH_EMPH = $Env:PWSH_EMPH ?? '**'
-$em = $Env:PWSH_EMPH ?? '``'
+$em = $Env:PWSH_EMPH ?? '`'
 
 $ProfilePath = $env:PWSH_PROFILE_PATH ?? (Join-Path $HOME 'powershell' 'profile')
 $DefaultProfileFilePath = Join-Path $ProfilePath 'basic-profile.ps1'
