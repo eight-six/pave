@@ -11,7 +11,7 @@ $Path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
 sp -path $Path -Name 'ShowTaskViewButton' -Value 0 -Type 'DWord'
 sp -path $Path -Name 'TaskbarDa' -Value 0 -Type 'DWord' # widgets
 sp -path $Path -Name 'TaskbarMn' -Value 0 -Type 'DWord' # chat
-sp -path $Path -Name 'TaskbarSi' -Value 2 -Type 'DWord' # taskbar icon size: 0 smol, 1 Normal, 2 large
+sp -path $Path -Name 'TaskbarSi' -Value 1 -Type 'DWord' # taskbar icon size: 0 smol, 1 Normal, 2 large
 
 # taskbar search settings
 $Path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search\'
