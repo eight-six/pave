@@ -34,7 +34,15 @@
 					"PackageIdentifier" : "Microsoft.DotNet.Runtime.6"
 				},
 				{
-					"PackageIdentifier" : "Microsoft.DotNet.SDK.7",
+					"PackageIdentifier" : "Microsoft.DotNet.Runtime.7",
+					"Scope": "machine"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.DotNet.DesktopRuntime.7",
+					"Scope": "machine"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.DotNet.SDK.8",
 					"Scope": "machine"
 				}
 			],

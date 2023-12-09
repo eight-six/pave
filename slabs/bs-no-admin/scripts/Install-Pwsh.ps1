@@ -74,7 +74,7 @@ if($InstallPath -eq (Split-Path -Parent ([Environment]::GetCommandLineArgs()[0])
 }
 
 # install pwsh
-Write-Information "$($Env:BS_LOG_HEADER)installing pwsh v$Version"
+Write-Information "INFO: $($Env:BS_LOG_HEADER)installing pwsh v$Version"
 
 
 $InstallerFileName = "PowerShell-$Version-win-x64.zip"
@@ -100,6 +100,6 @@ if(!(Test-path $PROFILE)) {
 }
 }| pwsh -command - 					#note the sneaky minus = get command from stdin
 
-Write-Information "$($Env:BS_LOG_HEADER)installing pwsh v$Version - done"
+Write-Information "INFO: $($Env:BS_LOG_HEADER)installing pwsh v$Version - done"
 
 

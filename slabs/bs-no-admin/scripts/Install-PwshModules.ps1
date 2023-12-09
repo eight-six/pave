@@ -59,7 +59,7 @@ $Modules.Keys | % {
     $ModuleName = $_
     $ModuleVersion = $Modules[$_] ?? '(latest)'
 
-    $Message = "$($Env:BS_LOG_HEADER)installing module ``$ModuleName`` ``$ModuleVersion``"
+    $Message = "INFO: $($Env:BS_LOG_HEADER)installing module ``$ModuleName`` ``$ModuleVersion``"
     Write-Information "$Message..."
 
     $Params = @{
