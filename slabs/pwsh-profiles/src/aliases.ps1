@@ -11,7 +11,7 @@ $Aliases.Keys | % {
     $Target = $Aliases[$_]
 
     if(gcm $Target){
-	Write-Verbose "Target ``$Target`` found" -Verbose
+	Write-Verbose "Target ``$Target`` found"
 
         $Current = Get-Alias $Alias -ea 'SilentlyContinue' 
 
@@ -20,7 +20,7 @@ $Aliases.Keys | % {
                 Write-Warning "Alias ``$($Current.Name)`` already exits with target ``$($Current.Definition)``"
             }
         } else {
-	    Write-Verbose "Alias ``$Alias`` available" -Verbose
+	    Write-Verbose "Alias ``$Alias`` available"
 	    New-Alias $Alias $Target -Scope 'Global'
 	}
     } else {

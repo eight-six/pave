@@ -1,4 +1,12 @@
 
+$ErrorActionPreference = 'Stop'
+$InformationPreference = 'Continue'
+$VerbosePreference = 'Continue'
+$WarningPreference = 'Continue'
+
+$SlabsRoot = (Resolve-Path(Join-Path $PSScriptRoot '..')).Path
+. "$SlabsRoot/slab-utils/slab-utils.ps1"
+
 # windows themes settings
 $Path = 'HKCU:Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
 sp -path $Path -Name 'AppsUseLightTheme' -Value 0

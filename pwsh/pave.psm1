@@ -1,10 +1,20 @@
+$ErrorActionPreference = 'Stop'
 
-# $Script:Remote = $Env:PAVE_REMOTE ?? 'https://pave.eightsix.io/public/latest'
-# $Script:Remote = $Env:PAVE_REMOTE ?? 'https://eightsixpaveprodstg.blob.core.windows.net/public/latest'
-# $Script:Cache = $Env:PAVE_CACHE ?? (Join-Path $HOME 'pave' 'slabs')
 $Script:Remote = if ($Env:PAVE_REMOTE) { $Env:PAVE_REMOTE }else { 'https://eightsixpaveprodstg.blob.core.windows.net/public/latest' }
 $Script:Cache = if ($Env:PAVE_CACHE) { $Env:PAVE_CACHE }else { Join-Path (Join-Path $HOME 'pave') 'slabs' }
-$ErrorActionPreference = 'Stop'
+
+$LayFile = 'lay.ps1'
+
+function emph {
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [string]$Text
+    )
+
+    $em = if($null -ne $Env:EM) { $Env:EM } else { '*' }
+
+    "$em$($Text)$em"
+}
 
 function Get-Remote {
     param(
@@ -51,13 +61,14 @@ function Deploy-Slab {
     process {
         $Name | ForEach-Object {
             if (Test-Path "$Script:Cache/$Name") {
-                Write-Verbose "$Script:Cache/$Name exists" -Verbose
+                Write-Verbose "$Script:Cache/$Name exists"
             }
             else {
-                throw "Slab ``$Name`` not found in cache"
+                throw "Slab $(emph $Name) not found in cache"
             }
+            Write-Verbose "Deploying $(emph $Name) from $Script:Cache/$Name/$LayFile"
 
-            & "$Script:Cache/$Name/deploy.ps1" Recurse -Force
+            & "$Script:Cache/$Name/$LayFile"
         }
     }
 }
@@ -68,24 +79,33 @@ function Find-Slab {
         [Parameter(Mandatory = $false, ValueFromPipeline = $true)]
         [string]$Name
     )
+    
     begin {
         $TempFile = New-TemporaryFile
         $IndexUri = "$Script:Remote/slabs/~index"
         Write-Verbose "Getting index from $IndexUri"
         Start-BitsTransfer $IndexUri $TempFile.FullName
-        $Slabs = cat $TempFile.FullName
+        $Slabs = Get-Content -Raw $TempFile.FullName | ConvertFrom-Json -Depth 3 -AsHashtable
     }
+
     process {
         if ($Name) {
-            if ($Slabs -contains $Name) {
-                $Name
+            if ($Slabs.Keys.Contains($Name)) {
+                $Slabs[$Name]
             }
             else {
-                throw "Slab ``$Name`` not found."
+                throw "Slab $(emph $Name) not found."
             }
         }
         else {
-            $Slabs
+            $Slabs.Keys| Sort-Object | ForEach-Object {
+                $Slab =  $Slabs[$_]
+                [PSCustomObject]@{
+                    Name = $_
+                    Description =  $Slab | Select-Object -ExpandProperty "description"
+                    DependsOn =   $Slab | Select-Object -ExpandProperty "dependsOn"
+                }
+            }
         }
     }
     end {
@@ -97,23 +117,46 @@ function Find-Slab {
 function Get-Slab {
     param(
         # Name of the slab to get e.g. 'bs', 'bs-pwsh'
-        [Parameter(Mandatory = $False, ValueFromPipeline = $true)]
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [string]$Name
     )
 
     process {
+        function GetSlabInfos {
+            param(
+                [Parameter(Mandatory = $true)]
+                [string]$Name,
+                [Parameter(Mandatory = $true)]
+                [string]$Description,
+                [Parameter()]
+                [string[]]$DependsOn,
+                [Parameter()]
+                [string]$Path
+            )
+            [PSCustomObject]@{
+                Name = $Name
+                Description = $Description
+                DependsOn = $DependsOn
+                Path = $Path
+            }
+
+        }
         #$PSBoundParameters
         if ($Name) {
             if (Test-Path "$Script:Cache/$Name") {
-                Write-Verbose "$Script:Cache/slabs/$Name exists" -Verbose
-                ls "$Script:Cache" -Name $Name -Directory | select -exp PSChildName
+                Write-Verbose "$Script:Cache/$Name exists"
+                $Slab = Import-PowerShellDataFile "$Script:Cache/$Name/info.psd1"
+                GetSlabInfos -Name $Name -Description $Slab.Description -DependsOn $Slab.dependsOn -Path "$Script:Cache/$Name"
             }
             else {
-                throw "Slab ``$Name`` not found in cache"
+                throw "Slab $(emph $Name) not found in cache"
             }
         }
         else {
-            ls "$Script:Cache" -Directory | select -exp name
+            Get-ChildItem "$Script:Cache" -Directory | ForEach-Object {
+                $Slab = Import-PowerShellDataFile "$Script:Cache/$($_.Name)/info.psd1"
+                GetSlabInfos -Name $_.Name -Description $Slab.Description -DependsOn $Slab.dependsOn -Path "$_"
+            }
         }
     }
 
@@ -122,7 +165,7 @@ function Get-Slab {
 function Install-Slab {
     [CmdletBinding()]
     param (
-        [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position=0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [String]
         $Name
     )
@@ -141,7 +184,7 @@ function Install-Slab {
             Start-BitsTransfer $Uri "$Script:Cache/"
             Write-Verbose "installing at $Script:Cache/$Name"
             Expand-Archive "$Script:Cache/$Name.zip" "$Script:Cache/$Name" -Force 
-            rm "$Script:Cache/$Name.zip"
+            Remove-Item "$Script:Cache/$Name.zip"
         }
     }
     
@@ -189,5 +232,8 @@ function Uninstall-Slab {
 #         $Script:AvailableSlabs | Where-Object { $_ -like "$wordToComplete*" }
 #     }
 # }
+
+New-Alias -Name 'lay' -Value 'Deploy-Slab'
+
 
 

@@ -56,7 +56,7 @@ if (!$IsWindows) {
     throw "This script is for windows only. For other platforms see https://www.powershellgallery.com/packages/Install-VSCode"
 }
 
-$LogMessage = "$($Env:BS_LOG_HEADER)installing VS Code (64-bit $BuildType)"
+$LogMessage = "INFO: $($Env:BS_LOG_HEADER)installing VS Code (64-bit $BuildType)"
 Write-Information "$LogMessage..."
 
 if($UsePSGallery.IsPresent){
@@ -79,7 +79,7 @@ if($UsePSGallery.IsPresent){
     .\Install-VSCode.ps1 @Params
 } else {
     $VsCodeUri = "https://update.code.visualstudio.com/latest/win32-x64-user/$BuildType"
-    Write-Verbose "$VsCodeUri" -Verbose
+    Write-Verbose "$VsCodeUri"
     $VsSetupExe = ".\vscode-win32-x64-user-$BuildType-setup.exe"
     Start-BitsTransfer -Source $VsCodeUri -Destination $VsSetupExe
     Start-Process $VsSetupExe -Wait -ArgumentList "/silent /MERGETASKS=!runcode"    

@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $BuildDir = "$PSScriptRoot/../build"
-$ModuleVersion = $Env:BUILD_MODULE_VERSION ??  '0.0.0'
+$ModuleVersion = $Env:BUILD_MODULE_VERSION ??  '99.99.99'
 $ModuleName = 'pave-module'
 $ModuleFilePath = "$ModuleName-v$ModuleVersion.zip"
 $ModuleBuildPath = "$BuildDir/$ModuleVersion"
@@ -20,14 +20,19 @@ if(!(Test-Path $ModuleBuildPath)){
     mkdir $ModuleBuildPath
 }
 
-$Index = @()
+$Slabs = @()
 
-Get-ChildItem -Directory "$PSScriptRoot/../slabs" | % {
-    $Index += $_.Name
+Get-ChildItem -Directory "$PSScriptRoot/../slabs" | ForEach-Object {
+    $Slabs += $_.Name
     Compress-Archive "$($_.FullName)/*" "$BuildDir/slabs/$($_.Name).zip" -Force 
 }
 
-$Index | Out-File "$BuildDir/slabs/~index"
+$Index = @{}
+$Slabs | ForEach-Object { 
+    $Infos = Import-PowerShellDataFile "$PSScriptRoot/../slabs/$($_)/info.psd1"
+    $Index[$_]=$Infos
+}
+$Index | ConvertTo-Json | Out-File "$BuildDir/slabs/~index"
 
 Update-ModuleManifest -Path "$ModuleSourcePath/pave.psd1" -ModuleVersion $ModuleVersion 
 
