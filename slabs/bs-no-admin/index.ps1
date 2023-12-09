@@ -1,4 +1,4 @@
-#Requires -PSEdition Desktop
+#Requires -version 5.1
 
 param (
     [string]$PwshVersion = "7.4.0",

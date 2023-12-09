@@ -57,7 +57,7 @@ function Deploy-Slab {
                 throw "Slab ``$Name`` not found in cache"
             }
 
-            & "$Script:Cache/$Name/deploy.ps1" Recurse -Force
+            & "$Script:Cache/$Name/deploy.ps1"
         }
     }
 }
