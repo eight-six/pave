@@ -87,12 +87,12 @@ function Find-Slab {
             }
         }
         else {
-            $Slabs.Keys| Sort-Object | % {
+            $Slabs.Keys| Sort-Object | ForEach-Object {
                 $Slab =  $Slabs[$_]
                 [PSCustomObject]@{
                     Name = $_
-                    Description =  $Slab | select -ExpandProperty "description"
-                    DependsOn =   ($Slab | select -ExpandProperty "dependsOn") -join ', '
+                    Description =  $Slab | Select-Object -ExpandProperty "description"
+                    DependsOn =   ($Slab | Select-Object -ExpandProperty "dependsOn") -join ', '
                 }
             }
         }
@@ -115,14 +115,14 @@ function Get-Slab {
         if ($Name) {
             if (Test-Path "$Script:Cache/$Name") {
                 Write-Verbose "$Script:Cache/slabs/$Name exists" -Verbose
-                ls "$Script:Cache" -Name $Name -Directory | select -exp PSChildName
+                Get-ChildItem "$Script:Cache" -Name $Name -Directory | Select-Object -exp PSChildName
             }
             else {
                 throw "Slab ``$Name`` not found in cache"
             }
         }
         else {
-            ls "$Script:Cache" -Directory | select -exp name
+            Get-ChildItem "$Script:Cache" -Directory | Select-Object -exp name
         }
     }
 
@@ -150,7 +150,7 @@ function Install-Slab {
             Start-BitsTransfer $Uri "$Script:Cache/"
             Write-Verbose "installing at $Script:Cache/$Name"
             Expand-Archive "$Script:Cache/$Name.zip" "$Script:Cache/$Name" -Force 
-            rm "$Script:Cache/$Name.zip"
+            Remove-Item "$Script:Cache/$Name.zip"
         }
     }
     
