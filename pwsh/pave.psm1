@@ -92,7 +92,7 @@ function Find-Slab {
                 [PSCustomObject]@{
                     Name = $_
                     Description =  $Slab | Select-Object -ExpandProperty "description"
-                    DependsOn =   ($Slab | Select-Object -ExpandProperty "dependsOn") -join ', '
+                    DependsOn =   $Slab | Select-Object -ExpandProperty "dependsOn"
                 }
             }
         }
@@ -106,23 +106,46 @@ function Find-Slab {
 function Get-Slab {
     param(
         # Name of the slab to get e.g. 'bs', 'bs-pwsh'
-        [Parameter(Mandatory = $False, ValueFromPipeline = $true)]
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [string]$Name
     )
 
     process {
+        function GetSlabInfos {
+            param(
+                [Parameter(Mandatory = $true)]
+                [string]$Name,
+                [Parameter(Mandatory = $true)]
+                [string]$Description,
+                [Parameter()]
+                [string[]]$DependsOn,
+                [Parameter()]
+                [string]$Path
+            )
+            [PSCustomObject]@{
+                Name = $Name
+                Description = $Description
+                DependsOn = $DependsOn
+                Path = $Path
+            }
+
+        }
         #$PSBoundParameters
         if ($Name) {
             if (Test-Path "$Script:Cache/$Name") {
-                Write-Verbose "$Script:Cache/slabs/$Name exists" -Verbose
-                Get-ChildItem "$Script:Cache" -Name $Name -Directory | Select-Object -exp PSChildName
+                Write-Verbose "$Script:Cache/$Name exists" -Verbose
+                $Slab = Import-PowerShellDataFile "$Script:Cache/$Name/info.psd1"
+                GetSlabInfos -Name $Name -Description $Slab.Description -DependsOn $Slab.dependsOn -Path "$Script:Cache/$Name"
             }
             else {
                 throw "Slab ``$Name`` not found in cache"
             }
         }
         else {
-            Get-ChildItem "$Script:Cache" -Directory | Select-Object -exp name
+            Get-ChildItem "$Script:Cache" -Directory | ForEach-Object {
+                $Slab = Import-PowerShellDataFile "$Script:Cache/$($_.Name)/info.psd1"
+                GetSlabInfos -Name $_.Name -Description $Slab.Description -DependsOn $Slab.dependsOn -Path "$_.FullName"
+            }
         }
     }
 
