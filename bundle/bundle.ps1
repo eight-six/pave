@@ -22,13 +22,13 @@ if(!(Test-Path $ModuleBuildPath)){
 
 $Slabs = @()
 
-Get-ChildItem -Directory "$PSScriptRoot/../slabs" | % {
+Get-ChildItem -Directory "$PSScriptRoot/../slabs" | ForEach-Object {
     $Slabs += $_.Name
     Compress-Archive "$($_.FullName)/*" "$BuildDir/slabs/$($_.Name).zip" -Force 
 }
 
 $Index = @{}
-$Slabs | % { 
+$Slabs | ForEach-Object { 
     $Infos = Import-PowerShellDataFile "$PSScriptRoot/../slabs/$($_)/info.psd1"
     $Index[$_]=$Infos
 }
