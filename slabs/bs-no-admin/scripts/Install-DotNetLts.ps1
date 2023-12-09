@@ -17,7 +17,7 @@ function AddToUserPath{
 
 $DotNetInstallUri = 'https://dot.net/v1/dotnet-install.ps1'
 
-Write-Information "installing dotnet latest LTS "
+Write-Information "INFO: installing dotnet latest LTS "
 Start-BitsTransfer $DotNetInstallUri
 .\dotnet-install.ps1 # LTS i.e. v6
 $DotNetInstallPath = "$Env:LocalAppData\Microsoft\dotnet"
@@ -25,4 +25,4 @@ $DotNetInstallPath = "$Env:LocalAppData\Microsoft\dotnet"
 $Env:DOTNET_ROOT =  $DotNetInstallPath
 AddToUserPath -PathToAdd $DotNetInstallPath -AddToCurrentSession
 
-Write-Information "installing dotnet latest LTS - done"
+Write-Information "INFO: installing dotnet latest LTS - done"

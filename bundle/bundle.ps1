@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $BuildDir = "$PSScriptRoot/../build"
-$ModuleVersion = $Env:BUILD_MODULE_VERSION ??  '0.0.0'
+$ModuleVersion = $Env:BUILD_MODULE_VERSION ??  '99.99.99'
 $ModuleName = 'pave-module'
 $ModuleFilePath = "$ModuleName-v$ModuleVersion.zip"
 $ModuleBuildPath = "$BuildDir/$ModuleVersion"

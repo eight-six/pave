@@ -1,6 +1,5 @@
 @{
     description = 'Bootstrap using winget (Windows Package Manager)'
-    dependsOn = @(
-    )
+    dependsOn = @('slab-utils')
 
 }

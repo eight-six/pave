@@ -7,18 +7,22 @@ param (
 )
 
 $ErrorActionPreference = 'Stop'
-$InformationPreference = 'Continue'
+
+$ThisSlabName = Split-Path $PSScriptRoot -Leaf
+$SlabsRoot = (Resolve-Path(Join-Path $PSScriptRoot '..')).Path
+. "$SlabsRoot/slab-utils/slab-utils.ps1"
 
 if($InstallWindowsTerminal.IsPresent){
     .\Install-StorageExplorer.ps1
 }
-    
-& "$PSScriptRoot\Install-Pwsh.ps1" -Version $PwshVersion
 
-$LogMessage = "bootstrap: installing nuget >= $NugetMinVersion"
-Write-Information "$LogMessage..."
+$ScriptsFolder = Join-Path $PSScriptRoot 'scripts'
+& "$ScriptsFolder\Install-Pwsh.ps1" -Version $PwshVersion
+
+$LogMessage = "INFO: $(emph $ThisSlabName) installing nuget >= $NugetMinVersion"
+Write-Information "$LogMessage$LogStart"
 Install-PackageProvider -Name NuGet -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force
-Write-Information "$LogMessage - done"
+Write-Information "$LogMessage$LogDone"
 
 {
     $VsBuildType = 'insider'
@@ -32,11 +36,10 @@ Write-Information "$LogMessage - done"
         'ms-vscode.remote-repositories'
     )
     
-    .\Install-DotNetLts.ps1
-    .\Install-GitForWindows.ps1 
-    .\Install-BsCode.ps1 -BuildType $VsBuildType #-UsePSGallery #-VsCodeExtensions $VsCodeExtensions
-    .\Install-AzureDataStudio.ps1
-    .\Install-StorageExplorer.ps1
+    & "$ScriptsFolder\Install-DotNetLts.ps1"
+    & "$ScriptsFolder\Install-GitForWindows.ps1" 
+    & "$ScriptsFolder\Install-BsCode.ps1" -BuildType $VsBuildType #-UsePSGallery #-VsCodeExtensions $VsCodeExtensions
+    & "$ScriptsFolder\Install-AzureDataStudio.ps1"
+    & "$ScriptsFolder\Install-StorageExplorer.ps1"
     
-
 } | & "$Env:LocalAppData\powershell\pwsh" -WorkingDirectory $PSScriptRoot -noexit  -command -

@@ -4,6 +4,7 @@
         'bs-no-admin'
         'bs-pwsh'
         'bs-winget'
+        'slab-utils'
     )
 
 }

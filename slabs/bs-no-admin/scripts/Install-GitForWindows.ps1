@@ -1,3 +1,4 @@
+#requires -Version 5.1
 
 <#PSScriptInfo
 
@@ -77,7 +78,7 @@ $Env:BS_GIT_VER = 2.41.0.1
 param (
     [ValidatePattern('\d+\.\d+\.\d+\.\d+')]
     [string]$Version = $Env:BS_GIT_VER ?? '2.42.0.2',
-    [string]$DownloadRoot = "https://github.com/git-for-windows/git/releases/download",
+    [string]$DownloadRoot = 'https://github.com/git-for-windows/git/releases/download',
     [switch]$HideInstaller
 )
 
@@ -87,6 +88,8 @@ Set-StrictMode  -Version 3
 if (!$IsWindows) {
     throw "This script is for windows only. See https://git-scm.com/download/$($IsMacOS ? 'mac' : 'linux') "
 }
+
+$em = if ($null -ne $Env:PS_EM) { $Env:PS_EM } else { $Env:PS_EM = '*', $Env:PS_EM }
 
 $VersionParts = $Version -split '\.'
 $Major = $VersionParts[0]
@@ -98,11 +101,10 @@ $DownloadFolder = "v$Major.$Minor.$Build.windows.$Revision"
 $DownloadName = "Git-$Major.$Minor.$Build$($Revision -eq 1 ? '' : ".$Revision")-64-bit.exe"
 $DownloadUri = "$DownloadRoot/$DownloadFolder/$DownloadName"
 
-Write-Verbose "Downloading git ``$Version`` - ``$DownloadUri``" -Verbose
+Write-Information "INFO: Downloading git $em$Version$em - $em$DownloadUri$em"
 Start-BitsTransfer -Source $DownloadUri
-Write-Verbose "Downloading git ``$Version`` - ``$DownloadUri`` - done!" -Verbose
+Write-Information "INFO: Downloading git $em$Version$em - $em$DownloadUri$em - done!"
 
-
-Write-Verbose "Installing git ``$Version``" -Verbose
-Start-process $DownloadName -Wait -ArgumentList ($HideInstaller ? '/VERYSILENT' : '/SILENT')
-Write-Verbose "Downloading git ``$Version`` - done!" -Verbose
+Write-Information "INFO: Installing git $em$Version$em"
+Start-Process $DownloadName -Wait -ArgumentList ($HideInstaller ? '/VERYSILENT' : '/SILENT')
+Write-Information "INFO: Installing git $em$Version$em - done!"

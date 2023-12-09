@@ -91,7 +91,7 @@ $Tools | ? id -EQ 'Perimeter81Ltd.Perimeter81Ltd' | % {
         $HeaderText = "$op $($_.id) ($($_.version))"
         $LPad = [Math]::Floor(($HeaderWidth - ($HeaderText.Length + 2))/2.0)
         $RPad = $HeaderWidth - ($HeaderText.Length + 2 + $LPad)
-        Write-Information "`n`e[32m$('*' * $LPad)`e[0m `e[33m$HeaderText`e[0m `e[32m$('*' * $RPad)`e[0m"
+        Write-Information "INFO: `n`e[32m$('*' * $LPad)`e[0m `e[33m$HeaderText`e[0m `e[32m$('*' * $RPad)`e[0m"
         # winget search $_ --source winget
         $WingetArgs = $Op, "--id $($_.id)", "--exact"
         
@@ -106,7 +106,7 @@ $Tools | ? id -EQ 'Perimeter81Ltd.Perimeter81Ltd' | % {
         if ($_.version -ne 'latest') {
             $WingetArgs += "--version $($_.version)"
         }
-        Write-Verbose ($WingetArgs -join ' ') -Verbose
+        Write-Verbose ($WingetArgs -join ' ')
         start-Process winget -ArgumentList $WingetArgs -Wait -NoNewWindow
     }
 }

@@ -98,7 +98,7 @@ Get-Slab bs
 bs
 ```
 
-Deploy a slab - some slabs e.g. `pwsh-profiles` are designed to be deployed after install - these will have a `deploy.ps1` script in the root of the slab.  A quick way to deploy this type of slab is to use the `Deploy-Slab` cmdlet:
+Deploy a slab - some slabs e.g. `pwsh-profiles` are designed to be deployed after install - these will have a `index.ps1` script in the root of the slab.  A quick way to deploy this type of slab is to use the `Deploy-Slab` cmdlet:
 
 ```pwsh
 Deploy-Slab 'pwsh-profiles'

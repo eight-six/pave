@@ -4,7 +4,7 @@ param(
     [switch]$HideInstaller
 )
 
-Write-Information "bootstrap: installing AzureDataStudio"
+Write-Information "INFO: bootstrap: installing AzureDataStudio"
 
 # Write-Information "Issues with UAC!" -InformationAction 'Continue'
 
@@ -14,4 +14,4 @@ $DownloadUri = (Invoke-WebRequest $GoMsDownloadUri -Method Head).BaseResponse.Re
 Start-BitsTransfer $DownloadUri $Setup
 Start-Process $Setup -Wait -ArgumentList '/CURRENTUSER', "/$($HideInstaller.IsPresent ? 'VERYSILENT' : 'SILENT')", '/MERGETASKS=!runcode'    
 
-Write-Information "bootstrap: installing AzureDataStudio - done"
+Write-Information "INFO: bootstrap: installing AzureDataStudio - done"

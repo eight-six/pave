@@ -1,6 +1,5 @@
 @{
     description = 'Deploys pwsh profiles and supporting scripts'
-    dependsOn = @(
-    )
+    dependsOn = @('slab-utils')
 
 }
