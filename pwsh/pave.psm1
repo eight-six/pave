@@ -68,24 +68,33 @@ function Find-Slab {
         [Parameter(Mandatory = $false, ValueFromPipeline = $true)]
         [string]$Name
     )
+    
     begin {
         $TempFile = New-TemporaryFile
         $IndexUri = "$Script:Remote/slabs/~index"
         Write-Verbose "Getting index from $IndexUri"
         Start-BitsTransfer $IndexUri $TempFile.FullName
-        $Slabs = cat $TempFile.FullName
+        $Slabs = Get-Content -Raw $TempFile.FullName | ConvertFrom-Json -Depth 3 -AsHashtable
     }
+
     process {
         if ($Name) {
-            if ($Slabs -contains $Name) {
-                $Name
+            if ($Slabs.Keys.Contains($Name)) {
+                $Slabs[$Name]
             }
             else {
                 throw "Slab ``$Name`` not found."
             }
         }
         else {
-            $Slabs
+            $Slabs.Keys| Sort-Object | % {
+                $Slab =  $Slabs[$_]
+                [PSCustomObject]@{
+                    Name = $_
+                    Description =  $Slab | select -ExpandProperty "description"
+                    DependsOn =   ($Slab | select -ExpandProperty "dependsOn") -join ', '
+                }
+            }
         }
     }
     end {
