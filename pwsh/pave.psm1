@@ -144,7 +144,7 @@ function Get-Slab {
         else {
             Get-ChildItem "$Script:Cache" -Directory | ForEach-Object {
                 $Slab = Import-PowerShellDataFile "$Script:Cache/$($_.Name)/info.psd1"
-                GetSlabInfos -Name $_.Name -Description $Slab.Description -DependsOn $Slab.dependsOn -Path "$_.FullName"
+                GetSlabInfos -Name $_.Name -Description $Slab.Description -DependsOn $Slab.dependsOn -Path "$_"
             }
         }
     }
@@ -154,7 +154,7 @@ function Get-Slab {
 function Install-Slab {
     [CmdletBinding()]
     param (
-        [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position=0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [String]
         $Name
     )
