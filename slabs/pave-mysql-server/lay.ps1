@@ -6,22 +6,19 @@ param(
 
 begin {
     $ErrorActionPreference = 'Stop'
-    $InformationPreference = 'Continue'
-    $VerbosePreference = 'Continue'
-    $WarningPreference = 'Continue'
 
-    $Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+    $ThisSlabName = Split-Path $PSScriptRoot -Leaf
+    $SlabsRoot = (Resolve-Path(Join-Path $PSScriptRoot '..')).Path
+    . "$SlabsRoot/slab-utils/slab-utils.ps1"
+
     $MySqlRoot = "C:\Program Files\MySQL\MySQL Server 8.0\bin"
 }
 
 process{
-    $Info = "Installing MySQL with bs-winget"
-    Write-Information "$Info..."
-    & "$Root\bs-winget\bs.ps1" -FilePath "$Root\bs-winget\mysql-server.json"
-    Write-Information "$Info - done."
+    Deploy $ThisSlabName 'pave-mysql-server' @{PackageSet = 'mysql-server'}
     
     $Info = "Initializing MySQL Server"
-    Write-Information "$Info..."
+    Write-Information "$Info$LogStart"
     
     $InitArgs = @("--console")
     
@@ -32,15 +29,14 @@ process{
         $InitArgs += "--initialize"
     }
 
-    & "$MySqlRoot\mysqld" $InitArgs
-
-    Write-Information "$Info - done."
+    Start-Process "$MySqlRoot\mysqld" $InitArgs -Wait
+    Write-Information "$Info$LogDone"
 
     if($StartServer.IsPresent){
         $StartArgs = @("--console")
         $Info = "Starting MySQL Server"
-        Write-Information "$Info..."
-        start "$MySqlRoot\mysqld" $StartArgs
-        Write-Information "$Info - done."
+        Write-Information "$Info$LogStart"
+        Start-Process "$MySqlRoot\mysqld" $StartArgs
+        Write-Information "$Info$LogDone"
     }
 }
