@@ -1,3 +1,5 @@
+using namespace System.Management.Automation
+
 $ErrorActionPreference = 'Stop'
 
 $Script:Remote = if ($Env:PAVE_REMOTE) { $Env:PAVE_REMOTE }else { 'https://eightsixpaveprodstg.blob.core.windows.net/public/latest' }
@@ -11,7 +13,7 @@ function emph {
         [string]$Text
     )
 
-    $em = if($null -ne $Env:EM) { $Env:EM } else { '*' }
+    $em = if ($null -ne $Env:EM) { $Env:EM } else { '*' }
 
     "$em$($Text)$em"
 }
@@ -53,11 +55,49 @@ function Deploy-Slab {
         [String]
         $Name
     )
+    dynamicparam {
+        $ParamDictionary = [RuntimeDefinedParameterDictionary]::new()
 
-    begin {
-       
+        if ($PSBoundParameters.ContainsKey('Name')) {
+            $SlabName = $PSBoundParameters['Name']
+            if (Test-Path "$Script:Cache/$SlabName") {
+                $ast = [Language.Parser]::ParseFile("$Script:Cache/$SlabName/$LayFile", [ref]$null, [ref]$null)
+
+                $params = $ast.FindAll({ $args[0] -is [Language.ParameterAst] }, $true)
+                
+                Write-Verbose "SlabName: $Script:Cache/$Name/$LayFile" -Verbose
+
+                $params | ForEach-Object {
+                    $param = $_
+                    $paramName = $param.Name.VariablePath.UserPath
+                    $paramDefaultValue = $param.DefaultValue.Extent.Text
+
+                    Write-Verbose "paramName: $paramName" -Verbose
+                    Write-Verbose "paramDefaultValue: $paramDefaultValue" -Verbose
+
+                    $ParameterAttribute = [ParameterAttribute]@{
+                        Mandatory = $false
+                    }
+                    $DefaultValueAttribute = [System.Runtime.InteropServices.DefaultParameterValueAttribute]::new($paramDefaultValue)
+                    $AttributesCollection = [System.Collections.ObjectModel.Collection[System.Attribute]]::new()
+                    $AttributesCollection.Add($ParameterAttribute)
+                    $AttributesCollection.Add($DefaultValueAttribute)
+                    $NewParam = [RuntimeDefinedParameter]::new(
+                        $paramName, $param.StaticType, $AttributesCollection
+                    )
+                    
+                    $ParamDictionary.Add($paramName, $NewParam)
+                }
+            }
+        }
+        return $ParamDictionary
     }
 
+    begin {
+        $SlabParams = [hashtable]$PSBoundParameters # make a sneaky copy
+        $SlabParams.Remove('Name')
+    }
+        
     process {
         $Name | ForEach-Object {
             if (Test-Path "$Script:Cache/$Name") {
@@ -68,7 +108,7 @@ function Deploy-Slab {
             }
             Write-Verbose "Deploying $(emph $Name) from $Script:Cache/$Name/$LayFile"
 
-            & "$Script:Cache/$Name/$LayFile"
+            & "$Script:Cache/$Name/$LayFile" @SlabParams
         }
     }
 }
@@ -98,12 +138,12 @@ function Find-Slab {
             }
         }
         else {
-            $Slabs.Keys| Sort-Object | ForEach-Object {
-                $Slab =  $Slabs[$_]
+            $Slabs.Keys | Sort-Object | ForEach-Object {
+                $Slab = $Slabs[$_]
                 [PSCustomObject]@{
-                    Name = $_
-                    Description =  $Slab | Select-Object -ExpandProperty "description"
-                    DependsOn =   $Slab | Select-Object -ExpandProperty "dependsOn"
+                    Name        = $_
+                    Description = $Slab | Select-Object -ExpandProperty 'description'
+                    DependsOn   = $Slab | Select-Object -ExpandProperty 'dependsOn'
                 }
             }
         }
@@ -134,10 +174,10 @@ function Get-Slab {
                 [string]$Path
             )
             [PSCustomObject]@{
-                Name = $Name
+                Name        = $Name
                 Description = $Description
-                DependsOn = $DependsOn
-                Path = $Path
+                DependsOn   = $DependsOn
+                Path        = $Path
             }
 
         }
@@ -165,7 +205,7 @@ function Get-Slab {
 function Install-Slab {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true, Position=0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [String]
         $Name
     )
