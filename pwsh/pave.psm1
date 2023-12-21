@@ -125,7 +125,7 @@ function Find-Slab {
         $IndexUri = "$Script:Remote/slabs/~index"
         Write-Verbose "Getting index from $IndexUri"
         Start-BitsTransfer $IndexUri $TempFile.FullName
-        $Slabs = Get-Content -Raw $TempFile.FullName | ConvertFrom-Json -AsHashtable
+        $Slabs = Get-Content -Raw $TempFile.FullName | ConvertFrom-Json | Get-Member -Type NoteProperty | select -exp name
     }
 
     process {
