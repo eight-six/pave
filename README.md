@@ -3,10 +3,12 @@
 Get the pave module
 
 ```pwsh
-cd $HOME 
-Start-BitsTransfer 'https://eightsixpaveprodstg.blob.core.windows.net/public/latest/pwsh-pave.zip' 
-Expand-Archive '.\pwsh-pave.zip' './powershell/modules/pave'
-rm '.\pwsh-pave.zip'
+$ModulePath = "$($env:PSModulePath -split ';' | select -First 1)/pave"
+$ModuleZipFileName = 'pave-module.zip'
+cd "$HOME\downloads" 
+Start-BitsTransfer "https://eightsixpaveprodstg.blob.core.windows.net/public/latest/$ModuleZipFileName" 
+Expand-Archive $ModuleZipFileName $ModulePath
+rm $ModuleZipFileName 
 Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser'
 ```
 
