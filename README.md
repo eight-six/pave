@@ -53,7 +53,7 @@ Set-Remote 'https://pave.eightsix.io/public/latest'
 Set local cache location
 
 ```pwsh
-Set-Remote '~/slabs'
+Set-Cache '~/slabs'
 ```
 
 Find available slabs
@@ -63,12 +63,17 @@ Find-Slab
 ```
 
 ```text
-bs
-bs-no-admin
-bs-pwsh
-bs-winget
-pwsh-profiles
-pwsh-scripts
+Name          Description                                                                  DependsOn
+----          -----------                                                                  ---------
+bs            Bootstrap a Windows development machine                                      {bs-no-admin, bs-pwsh, bs-winget, slab-u…
+bs-no-admin   Bootstrap a Windows dev machine without admin rights                         slab-utils
+bs-pwsh       Bootstrap pwsh settings                                                      {pwsh-profiles, pwsh-scripts, slab-utils}
+bs-winget     Bootstrap using winget (Windows Package Manager)                             slab-utils
+git-bash      Deploy a git-prompts shell script that hides the MINGW element in the prompt
+pwsh-profiles Deploys pwsh profiles and supporting scripts                                 slab-utils
+pwsh-scripts  deploys some pwsh scripts                                                    slab-utils
+reg-tweaks    Changes a variety of registry settings                                       slab-utils
+slab-utils    common utilities for slabs
 ```
 
 Install a slab
@@ -105,3 +110,11 @@ Deploy a slab - some slabs e.g. `pwsh-profiles` are designed to be deployed afte
 ```pwsh
 Deploy-Slab 'pwsh-profiles'
 ```
+
+or using the `lay` alias
+
+```pwsh
+lay 'pwsh-profiles'
+```
+
+
