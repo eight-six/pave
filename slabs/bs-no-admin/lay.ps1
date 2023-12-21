@@ -36,10 +36,10 @@ Write-Information "$LogMessage$LogDone"
         'ms-vscode.remote-repositories'
     )
     
-    & "$ScriptsFolder\Install-DotNetLts.ps1"
-    & "$ScriptsFolder\Install-GitForWindows.ps1" 
-    & "$ScriptsFolder\Install-BsCode.ps1" -BuildType $VsBuildType #-UsePSGallery #-VsCodeExtensions $VsCodeExtensions
-    & "$ScriptsFolder\Install-AzureDataStudio.ps1"
-    & "$ScriptsFolder\Install-StorageExplorer.ps1"
+    & ".\Scripts\Install-DotNetLts.ps1"
+    & ".\Scripts\Install-GitForWindows.ps1" 
+    & ".\Scripts\Install-BsCode.ps1" -BuildType $VsBuildType #-UsePSGallery #-VsCodeExtensions $VsCodeExtensions
+    & ".\Scripts\Install-AzureDataStudio.ps1"
+    & ".\Scripts\Install-StorageExplorer.ps1"
     
 } | & "$Env:LocalAppData\powershell\pwsh" -WorkingDirectory $PSScriptRoot -noexit  -command -
