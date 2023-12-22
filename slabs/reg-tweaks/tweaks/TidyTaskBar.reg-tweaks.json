@@ -1,0 +1,33 @@
+{
+  "Description": "Sets System and Apps to dark mode",
+  "Keys": [
+    {
+      "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+      "Name": "ShowTaskViewButton",
+      "Value": 0,
+      "Type": "DWord",
+      "Description": "Hide Task View"
+    },
+    {
+      "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+      "Name": "TaskbarDa",
+      "Value": 0,
+      "Type": "DWord",
+      "Description": "Hide Widgets"
+    },
+    {
+      "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+      "Name": "TaskbarMn",
+      "Value": 0,
+      "Type": "DWord",
+      "Description": "Hide Chat"
+    },
+    {
+      "Path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+      "Name": "TaskbarSi",
+      "Value": 1,
+      "Type": "DWord",
+      "Description": "Set taskbar icon size (0 - smol, 1 - Normal, 2 - large)"
+    }
+  ]
+}

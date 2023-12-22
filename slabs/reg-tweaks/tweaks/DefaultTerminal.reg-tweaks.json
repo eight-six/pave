@@ -1,0 +1,19 @@
+{
+  "Description": "Default Terminal Application  \nsee https://support.microsoft.com/en-gb/windows/command-prompt-and-windows-powershell-for-windows-11-6453ce98-da91-476f-8651-5c14d5777c20\n",
+  "Keys": [
+    {
+      "Path": "HKCU:\\Console\\%%Startup\\",
+      "Name": "DelegationConsole",
+      "Value": "{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}",
+      "Type": "String",
+      "Description": ""
+    },
+    {
+      "Path": "HKCU:\\Console\\%%Startup\\",
+      "Name": "DelegationTerminal",
+      "Value": "{E12CFF52-A866-4C77-9A90-F570A7AA2C6B}",
+      "Type": "String",
+      "Description": ""
+    }
+  ]
+}

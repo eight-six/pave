@@ -1,0 +1,26 @@
+{
+  "Description": "Turns off the language related hotkeys that clash with vs code chords\n",
+  "Keys": [
+    {
+      "Path": "HKCU:\\Keyboard Layout\\Toggle\\",
+      "Name": "Hotkey",
+      "Value": 3,
+      "Type": "String",
+      "Description": ""
+    },
+    {
+      "Path": "HKCU:\\Keyboard Layout\\Toggle\\",
+      "Name": "Language Hotkey",
+      "Value": 3,
+      "Type": "String",
+      "Description": ""
+    },
+    {
+      "Path": "HKCU:\\Keyboard Layout\\Toggle\\",
+      "Name": "Layout Hotkey",
+      "Value": 3,
+      "Type": "String",
+      "Description": ""
+    }
+  ]
+}
