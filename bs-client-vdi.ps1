@@ -14,3 +14,4 @@ Install-Slab bs-no-admin
 Install-Slab reg-tweaks
 lay bs-no-admin -PwshVersion '7.4.3'
 lay reg-tweaks
+
