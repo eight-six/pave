@@ -12,6 +12,6 @@ Import-Module pave
 Install-Slab slab-utils
 Install-Slab bs-no-admin
 Install-Slab reg-tweaks
-lay bs-no-admin -PwshVersion '7.4.3'
+lay bs-no-admin -PwshVersion '7.4.4'
 lay reg-tweaks
 
