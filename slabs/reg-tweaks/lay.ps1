@@ -17,7 +17,10 @@ $Path = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
 
 # taskbar settings
 sp -path $Path -Name 'ShowTaskViewButton' -Value 0 -Type 'DWord'
-sp -path $Path -Name 'TaskbarDa' -Value 0 -Type 'DWord' # widgets
+if($null -ne (Get-ItemProperty -Path $Path -Name 'TaskbarDa' -ea 'Ignore')){
+    sp -path $Path -Name 'TaskbarDa' -Value 0 -Type 'DWord' # widgets
+}
+
 sp -path $Path -Name 'TaskbarMn' -Value 0 -Type 'DWord' # chat
 sp -path $Path -Name 'TaskbarSi' -Value 1 -Type 'DWord' # taskbar icon size: 0 smol, 1 Normal, 2 large
 
