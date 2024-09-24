@@ -13,5 +13,8 @@ Install-Slab slab-utils
 Install-Slab bs-no-admin
 Install-Slab reg-tweaks
 lay bs-no-admin -PwshVersion '7.4.4'
+winget install Python.Python.3.12
+git clone https://github.com/stvnrs/config
+./config/configs/uwm-vm/doit.ps1
 lay reg-tweaks
 
