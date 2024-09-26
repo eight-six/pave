@@ -15,6 +15,8 @@ Install-Slab bs-no-admin
 Install-Slab reg-tweaks
 lay bs-no-admin -PwshVersion '7.4.5'
 winget install Python.Python.3.12
+$Env:BS_USER_NAME = $Env:BS_USER_NAME ?? (Read-Host -Prompt "Enter your user name for git logs (set `$Env:BS_USER_NAME to avoid this prompt in future)")
+$Env:BS_USER_EMAIL = $Env:BS_USER_EMAIL ?? (Read-Host -Prompt "Enter your email name for git logs (set `$Env:BS_USER_EMAIL to avoid this prompt in future)")
 
 {
     if($Env:Path[-1] -ne ';'){
@@ -29,8 +31,6 @@ winget install Python.Python.3.12
         $Env:Path += "$Env:LOCALAPPDATA\Programs\Microsoft VS Code Insiders\bin;"
     }
     
-    $Env:BS_USER_NAME = $Env:BS_USER_NAME ?? (Read-Host -Prompt "Enter your user name for git logs (set `$Env:BS_USER_NAME to avoid this prompt in future)")
-    $Env:BS_USER_EMAIL = $Env:BS_USER_EMAIL ?? (Read-Host -Prompt "Enter your email name for git logs (set `$Env:BS_USER_EMAIL to avoid this prompt in future)")
     git clone https://github.com/stvnrs/config
     & ./config/configs/uwm-vm/doit.ps1
 } | & "$Env:LocalAppData\powershell\pwsh" -command -interactive - # note the sneaky '-' at the end!
