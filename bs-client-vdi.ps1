@@ -1,5 +1,6 @@
 
 $ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = 'true'
 
 Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser'
 $ModulePath = "$($env:PSModulePath -split ';' | select -First 1)/pave"
@@ -16,9 +17,22 @@ lay bs-no-admin -PwshVersion '7.4.5'
 winget install Python.Python.3.12
 
 {
+    if($Env:Path[-1] -ne ';'){
+        $Env:Path += ';'
+    }
+
+    if($null -eq (gcm git -ea 'Ignore')){
+        $Env:Path += "$Env:LOCALAPPDATA\Programs\git\bin;"
+    }
+    
+    if($null -eq (gcm code-insiders -ea 'Ignore')){
+        $Env:Path += "$Env:LOCALAPPDATA\Programs\Microsoft VS Code Insiders\bin;"
+    }
+    
+    $Env:BS_USER_NAME = $Env:BS_USER_NAME ?? (Read-Host -Prompt "Enter your user name for git logs (set `$Env:BS_USER_NAME to avoid this prompt in future)")
+    $Env:BS_USER_EMAIL = $Env:BS_USER_EMAIL ?? (Read-Host -Prompt "Enter your email name for git logs (set `$Env:BS_USER_EMAIL to avoid this prompt in future)")
     git clone https://github.com/stvnrs/config
-    ./config/configs/uwm-vm/doit.ps1
-} | & "$Env:LocalAppData\powershell\pwsh" -WorkingDirectory $PSScriptRoot -noexit  -command - # note the sneaky - at the end!
+    & ./config/configs/uwm-vm/doit.ps1
+} | & "$Env:LocalAppData\powershell\pwsh" -command -interactive - # note the sneaky '-' at the end!
 
 lay reg-tweaks
-
