@@ -2,7 +2,19 @@
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = 'true'
 
+$Env:PAVE_PWSH_VERSION = 7.4.5
+$Env:PAVE_PY_VERSION = 3.12
+
+if($null -eq $Env:PAVE_USER_NAME){
+    $Env:PAVE_USER_NAME = Read-Host -Prompt "Enter your user name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
+} 
+
+if($null -eq $Env:PAVE_USER_NAME){
+    $Env:PAVE_USER_EMAIL = Read-Host -Prompt "Enter your email name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
+} 
+
 Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser'
+
 $ModulePath = "$($env:PSModulePath -split ';' | select -First 1)/pave"
 $ModuleZipFileName = 'pave-module.zip'
 cd "$HOME\downloads" 
@@ -13,10 +25,8 @@ Import-Module pave
 Install-Slab slab-utils
 Install-Slab bs-no-admin
 Install-Slab reg-tweaks
-lay bs-no-admin -PwshVersion '7.4.5'
-winget install Python.Python.3.12
-$Env:BS_USER_NAME = $Env:BS_USER_NAME ?? (Read-Host -Prompt "Enter your user name for git logs (set `$Env:BS_USER_NAME to avoid this prompt in future)")
-$Env:BS_USER_EMAIL = $Env:BS_USER_EMAIL ?? (Read-Host -Prompt "Enter your email name for git logs (set `$Env:BS_USER_EMAIL to avoid this prompt in future)")
+lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION 
+winget install "Python.Python.$Env:PAVE_PY_VERSION"
 
 {
     if($Env:Path[-1] -ne ';'){
