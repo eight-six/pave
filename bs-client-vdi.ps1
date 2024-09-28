@@ -9,7 +9,7 @@ if($null -eq $Env:PAVE_USER_NAME){
     $Env:PAVE_USER_NAME = Read-Host -Prompt "Enter your user name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
 } 
 
-if($null -eq $Env:PAVE_USER_NAME){
+if($null -eq $Env:PAVE_USER_EMAIL ){
     $Env:PAVE_USER_EMAIL = Read-Host -Prompt "Enter your email name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
 } 
 
