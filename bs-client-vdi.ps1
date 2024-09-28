@@ -2,8 +2,8 @@
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = 'true'
 
-$Env:PAVE_PWSH_VERSION = 7.4.5
-$Env:PAVE_PY_VERSION = 3.12
+$Env:PAVE_PWSH_VERSION = '7.4.5'
+$Env:PAVE_PY_VERSION = '3.12'
 
 if($null -eq $Env:PAVE_USER_NAME){
     $Env:PAVE_USER_NAME = Read-Host -Prompt "Enter your user name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
