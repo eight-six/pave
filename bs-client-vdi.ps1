@@ -43,6 +43,6 @@ winget install "Python.Python.$Env:PAVE_PY_VERSION"
     
     git clone https://github.com/stvnrs/config
     & ./config/configs/uwm-vm/doit.ps1
-} | & "$Env:LocalAppData\powershell\pwsh" -command -interactive - # note the sneaky '-' at the end!
+} | & "$Env:LocalAppData\powershell\pwsh" -command - # note the sneaky '-' at the end!
 
 lay reg-tweaks
