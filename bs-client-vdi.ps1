@@ -40,7 +40,8 @@ winget install "Python.Python.$Env:PAVE_PY_VERSION"
     if($null -eq (gcm code-insiders -ea 'Ignore')){
         $Env:Path += "$Env:LOCALAPPDATA\Programs\Microsoft VS Code Insiders\bin;"
     }
-    
+    $Env:BS_USER_NAME = $Env:PAVE_USER_NAME
+    $Env:BS_USER_EMAIL =  $Env:PAVE_USER_EMAIL
     git clone https://github.com/stvnrs/config
     & ./config/configs/uwm-vm/doit.ps1
 } | & "$Env:LocalAppData\powershell\pwsh" -command - # note the sneaky '-' at the end!
