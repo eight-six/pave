@@ -3,7 +3,9 @@ $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = 'true'
 
 $Env:PAVE_PWSH_VERSION = '7.4.5'
-$Env:PAVE_PY_VERSION = '3.11'
+
+# seperate multiple versions with a | - versions are installed left to right
+$Env:PAVE_PY_VERSION = '3.12|3.11'
 
 if($null -eq $Env:PAVE_USER_NAME){
     $Env:PAVE_USER_NAME = Read-Host -Prompt "Enter your user name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
@@ -26,7 +28,10 @@ Install-Slab slab-utils
 Install-Slab bs-no-admin
 Install-Slab reg-tweaks
 lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION 
-winget install "Python.Python.$Env:PAVE_PY_VERSION"
+
+$Env:PAVE_PY_VERSION -split '\|' | % {
+    winget install "Python.Python.$_"
+}
 
 {
     if($Env:Path[-1] -ne ';'){
