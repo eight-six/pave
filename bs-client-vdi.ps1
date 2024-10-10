@@ -4,7 +4,7 @@ $PSNativeCommandUseErrorActionPreference = 'true'
 
 $Env:PAVE_PWSH_VERSION = '7.4.5'
 
-# seperate multiple versions with a | - versions are installed left to right
+# seperate multiple versions with a | - versions are installed left to right, the last one will be the default.
 $Env:PAVE_PY_VERSION = '3.12|3.11'
 
 if($null -eq $Env:PAVE_USER_NAME){
@@ -31,6 +31,8 @@ lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION
 
 $Env:PAVE_PY_VERSION -split '\|' | % {
     winget install "Python.Python.$_"
+    $PyVersion = $_ -replace '\.', ''
+    $Env:Path = "$Env:LOCALAPPDATA\Programs\Python\Python$PyVersion;$Env:LOCALAPPDATA\Programs\Python\Python$PyVersion\Scripts;" + $Env:Path
 }
 
 {
@@ -46,9 +48,6 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
         $Env:Path += "$Env:LOCALAPPDATA\Programs\Microsoft VS Code Insiders\bin;"
     }
     
-    $PyVersion = $Env:PAVE_PY_VERSION -replace '\.', ''
-    $Env:Path = "$Env:LOCALAPPDATA\Programs\Python\Python$PyVersion;$Env:LOCALAPPDATA\Programs\Python\Python$PyVersion\Scripts;" + $Env:Path
-
     git clone https://github.com/stvnrs/config
     & ./config/configs/uwm-vm/doit.ps1
 } | & "$Env:LocalAppData\powershell\pwsh" -command - # note the sneaky '-' at the end!
