@@ -25,12 +25,17 @@ Expand-Archive $ModuleZipFileName $ModulePath
 rm $ModuleZipFileName 
 Import-Module pave
 Install-Slab slab-utils
+
+# this is a wee hack as .net install doesn't add its install path to the path for the current session
+# when the installer for Azure Storage Explorer doesn't find dotnet it attempts to install dotnet to 
+# program files which requires elevation, which we don't have.
+$Env:Path = "$Env:LocalAppData\Microsoft\DotNet" + $Env:Path
 Install-Slab bs-no-admin
 Install-Slab reg-tweaks
 lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION 
 
 $Env:PAVE_PY_VERSION -split '\|' | % {
-    winget install "Python.Python.$_"
+    winget install "Python.Python.$_" --accept-source-agreements 
     $PyVersion = $_ -replace '\.', ''
     $Env:Path = "$Env:LOCALAPPDATA\Programs\Python\Python$PyVersion;$Env:LOCALAPPDATA\Programs\Python\Python$PyVersion\Scripts;" + $Env:Path
 }
