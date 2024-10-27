@@ -117,6 +117,8 @@ if (Test-Path $DestinationPath) {
 Write-Information "INFO: Installing node $em$Version$em"
 Expand-Archive $DownloadName -DestinationPath $DestinationRoot
 
+$Env:Path = "$DestinationPath;$env:Path"
+
 $Proxy = ([System.Net.WebRequest]::GetSystemWebProxy().GetProxy('https://www.npmjs.com/'))
 
 if ($null -ne $Proxy) {
@@ -124,7 +126,7 @@ if ($null -ne $Proxy) {
     npm config set https-proxy $Proxy.OriginalString
 }
 
-$Path = "$DestinationPath;$Env:Path"
+$Path = $Env:Path
 $UserPaths = [Environment]::GetEnvironmentVariable('PATH', 'USER') -split ';'  | ? {$_ -ne $DestinationPath}
 $UserPath = "$DestinationPath;$($UserPaths -join ';')"
 
