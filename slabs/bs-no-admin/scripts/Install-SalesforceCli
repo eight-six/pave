@@ -1,0 +1,31 @@
+#requires -Version 5.1
+
+param (
+
+)
+
+$ErrorActionPreference = 'Stop'
+
+if ($PSVersionTable.PSVersion.Major -ge 7 -and !$IsWindows) {
+    throw "This script is for windows only. See https://nodejs.org/en/download/package-manager for other options"
+}
+
+if($null -eq (gcm nodex -ErrorAction 'Ignore')){
+    throw "This script requires node, please install node and retry"
+}
+
+$Proxy = ([System.Net.WebRequest]::GetSystemWebProxy().GetProxy('https://www.npmjs.com/'))
+
+if ($null -ne $Proxy) {
+    $ProxyArgs = "--proxy $($Proxy.OriginalString)"
+}
+
+$em = if ($null -ne $Env:PS_EM) { $Env:PS_EM } else { $Env:PS_EM = '*'; $Env:PS_EM }
+
+
+
+Write-Information "INFO: Installing saleforce cli $em$Version$em"
+
+npm install @salesforce/cli --global $ProxyArgs
+
+Write-Information "INFO: Installing saleforce cli $em$Version$em - done!"
