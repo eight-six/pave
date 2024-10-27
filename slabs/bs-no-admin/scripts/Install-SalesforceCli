@@ -10,7 +10,7 @@ if ($PSVersionTable.PSVersion.Major -ge 7 -and !$IsWindows) {
     throw "This script is for windows only. See https://nodejs.org/en/download/package-manager for other options"
 }
 
-if($null -eq (gcm nodex -ErrorAction 'Ignore')){
+if($null -eq (gcm node -ErrorAction 'Ignore')){
     throw "This script requires node, please install node and retry"
 }
 
