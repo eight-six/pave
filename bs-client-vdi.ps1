@@ -2,7 +2,7 @@
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = 'true'
 
-$Env:PAVE_PWSH_VERSION = '7.4.5'
+$Env:PAVE_PWSH_VERSION = '7.4.6'
 
 # seperate multiple versions with a | - versions are installed left to right, the last one will be the default.
 $Env:PAVE_PY_VERSION = '3.12|3.11'
