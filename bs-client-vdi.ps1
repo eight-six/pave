@@ -57,4 +57,22 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
     & ./config/configs/uwm-vm/doit.ps1
 } | & "$Env:LocalAppData\powershell\pwsh" -command - # note the sneaky '-' at the end!
 
+{
+    if($null -eq (gcm git -ea 'Ignore')){
+        $Env:Path += "$Env:LOCALAPPDATA\Programs\git\bin;"
+    }
+    
+    git clone https://github.com/stvnrs/config-private
+    & ./config-private/configs/uwm-vm/env/doit.ps1
+    & ./config-private/configs/uwm-vm/pwsh/doit.ps1
+    & ./config-private/configs/uwm-vm/pwsh/doit.ps1
+    
+    Start-BitsTransfer https://github.com/eight-six/pave/blob/main/slabs/bs-no-admin/scripts/Install-Node.ps1
+    ./Install-Node.ps1
+
+} | & "$Env:LocalAppData\powershell\pwsh" -command - # note the sneaky '-' at the end!
+
+
+
+
 lay reg-tweaks
