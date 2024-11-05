@@ -59,7 +59,7 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
 
 {
     if($null -eq (gcm git -ea 'Ignore')){
-        $Env:Path += "$Env:LOCALAPPDATA\Programs\git\cmd\bin;"
+        $Env:Path += "$Env:LOCALAPPDATA\Programs\git\bin;"
     }
     
     git clone https://github.com/stvnrs/config-private
@@ -72,7 +72,4 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
 
 } | & "$Env:LocalAppData\powershell\pwsh" -command - # note the sneaky '-' at the end!
 
-
-
-
-lay reg-tweaks
+#lay reg-tweaks
