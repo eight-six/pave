@@ -46,7 +46,7 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
     }
 
     if($null -eq (gcm git -ea 'Ignore')){
-        $Env:Path += "$Env:LOCALAPPDATA\Programs\git\bin;"
+        $Env:Path = "$Env:LOCALAPPDATA\Programs\git\bin;" + $Env:Path
     }
     
     if($null -eq (gcm code-insiders -ea 'Ignore')){
@@ -59,7 +59,7 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
 
 {
     if($null -eq (gcm git -ea 'Ignore')){
-        $Env:Path += "$Env:LOCALAPPDATA\Programs\git\bin;"
+        $Env:Path = "$Env:LOCALAPPDATA\Programs\git\bin;" + $Env:Path
     }
     
     git clone https://github.com/stvnrs/config-private
