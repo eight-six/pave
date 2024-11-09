@@ -73,4 +73,14 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
 
 } | & "$Env:LocalAppData\powershell\pwsh" -command - # note the sneaky '-' at the end!
 
+{
+    $ErrorActionPreference = 'Stop'
+    
+    if($null -eq (gcm git -ea 'Ignore')){
+        $Env:Path = "$Env:LOCALAPPDATA\Programs\git\bin;" + $Env:Path
+    }
+
+    Start-BitsTransfer https://raw.githubusercontent.com/eight-six/pave/refs/heads/main/slabs/bs-no-admin/scripts/Install-Node.ps1
+    
+} | & "$Env:LocalAppData\powershell\pwsh" -command - # note the sneaky '-' at the end!
 #lay reg-tweaks
