@@ -81,6 +81,9 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
     }
 
     Start-BitsTransfer https://raw.githubusercontent.com/eight-six/pave/refs/heads/main/slabs/bs-no-admin/scripts/Install-Node.ps1
-    
+    # the previous command downloads the raw file for github which has LF line endings - this causes issues with PowerShell 5.1 and 7.4.6
+    # cat'ing the file replaces the LFs with CR+LFs 
+    cat .\Install-Node.ps1 > .\Install-NodeWin.ps1
+    & .\Install-NodeWin.ps1
 } | & "$Env:LocalAppData\powershell\pwsh" -command - # note the sneaky '-' at the end!
 #lay reg-tweaks
