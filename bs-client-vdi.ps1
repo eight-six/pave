@@ -88,7 +88,7 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
     # cat'ing the file replaces the LFs with CR+LFs
     cat .\Install-Node.ps1 > .\Install-NodeWin.ps1
     & .\Install-NodeWin.ps1
-'@ | ./bs-node.ps1
+'@ | Out-File -Encoding utf8 ./bs-node.ps1
 
  & "$Env:LocalAppData\powershell\pwsh" -file ./bs-node.ps1
 #lay reg-tweaks
