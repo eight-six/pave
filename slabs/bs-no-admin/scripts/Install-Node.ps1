@@ -98,7 +98,9 @@ $DownloadName = "node-v$Major.$Minor.$Build-win-x64.zip"
 $DownloadUri = "$DownloadRoot/$DownloadFolder/$DownloadName"
 
 Write-Information "INFO: Downloading node $em$Version$em - $em$DownloadUri$em"
-Start-BitsTransfer -Source $DownloadUri
+# Bits Transfer failing on client vdi - only for this download. works with iwr!
+# Start-BitsTransfer -Source $DownloadUri
+iwr $DownloadUri -OutFile $DownloadName
 Write-Information "INFO: Downloading node $em$Version$em - $em$DownloadUri$em - done!"
 
 $DestinationRoot = "$env:LOCALAPPDATA\Programs\nodejs"
