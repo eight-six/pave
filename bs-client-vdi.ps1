@@ -42,6 +42,7 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
 
 {
     $ErrorActionPreference = 'Stop'
+    $PSNativeCommandUseErrorActionPreference = $true
     
     if($Env:Path[-1] -ne ';'){
         $Env:Path += ';'
@@ -55,18 +56,23 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
         $Env:Path += "$Env:LOCALAPPDATA\Programs\Microsoft VS Code Insiders\bin;"
     }
     
-    git clone https://github.com/stvnrs/config
+    $Proxy = [System.Net.WebRequest]::GetSystemWebProxy().GetProxy('https://github.com')
+    $AddtionalArgs = if($null -ne $Proxy){"-c http.proxy=$($Proxy.OriginalString)"}else{''}
+    git clone $AddtionalArgs https://github.com/stvnrs/config
     & ./config/configs/uwm-vm/doit.ps1
 } | & "$Env:LocalAppData\powershell\pwsh" -command - # note the sneaky '-' at the end!
 
 {
     $ErrorActionPreference = 'Stop'
+    $PSNativeCommandUseErrorActionPreference = $true
     
     if($null -eq (gcm git -ea 'Ignore')){
         $Env:Path = "$Env:LOCALAPPDATA\Programs\git\bin;" + $Env:Path
     }
-    
-    git clone https://github.com/stvnrs/config-private
+
+    $Proxy = [System.Net.WebRequest]::GetSystemWebProxy().GetProxy('https://github.com')
+    $AddtionalArgs = if($null -ne $Proxy){"-c http.proxy=$($Proxy.OriginalString)"}else{''}
+    git clone  $AddtionalArgs  https://github.com/stvnrs/config-private
     . ./config-private/configs/uwm-vm/env/doit.ps1
     . ./config-private/configs/uwm-vm/pwsh/doit.ps1
     & ./config-private/configs/uwm-vm/code/doit.ps1
