@@ -40,6 +40,25 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
     $Env:Path = "$Env:LOCALAPPDATA\Programs\Python\Python$PyVersion;$Env:LOCALAPPDATA\Programs\Python\Python$PyVersion\Scripts;" + $Env:Path
 }
 
+# When copy & pasted or directly downloaded line endings in this "file" are LF.  This causes
+# some interesting issues.  Hence, write script to file and execute that.
+@'
+    $ErrorActionPreference = 'Stop'
+    
+    if($null -eq (gcm git -ea 'Ignore')){
+        $Env:Path = "$Env:LOCALAPPDATA\Programs\git\bin;" + $Env:Path
+        }
+        
+    $Uri = 'https://raw.githubusercontent.com/eight-six/pave/refs/heads/main/slabs/bs-no-admin/scripts/Install-Node.ps1'
+    Start-BitsTransfer $Uri
+    # the previous command downloads the raw file for github which has LF line endings - this causes issues with PowerShell 5.1 and 7.4.6
+    # cat'ing the file replaces the LFs with CR+LFs
+    cat .\Install-Node.ps1 > .\Install-NodeWin.ps1
+    & .\Install-NodeWin.ps1
+'@ | Out-File -Encoding utf8 ./bs-node.ps1
+
+ & "$Env:LocalAppData\powershell\pwsh" -file ./bs-node.ps1
+ 
 {
     $ErrorActionPreference = 'Stop'
     $PSNativeCommandUseErrorActionPreference = $true
@@ -79,22 +98,5 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
 
 } | & "$Env:LocalAppData\powershell\pwsh" -command - # note the sneaky '-' at the end!
 
-# When copy & pasted or directly downloaded line endings in this "file" are LF.  This causes
-# some interesting issues.  Hence, write script to file and execute that.
-@'
-    $ErrorActionPreference = 'Stop'
-    
-    if($null -eq (gcm git -ea 'Ignore')){
-        $Env:Path = "$Env:LOCALAPPDATA\Programs\git\bin;" + $Env:Path
-        }
-        
-    $Uri = 'https://raw.githubusercontent.com/eight-six/pave/refs/heads/main/slabs/bs-no-admin/scripts/Install-Node.ps1'
-    Start-BitsTransfer $Uri
-    # the previous command downloads the raw file for github which has LF line endings - this causes issues with PowerShell 5.1 and 7.4.6
-    # cat'ing the file replaces the LFs with CR+LFs
-    cat .\Install-Node.ps1 > .\Install-NodeWin.ps1
-    & .\Install-NodeWin.ps1
-'@ | Out-File -Encoding utf8 ./bs-node.ps1
 
- & "$Env:LocalAppData\powershell\pwsh" -file ./bs-node.ps1
 #lay reg-tweaks
