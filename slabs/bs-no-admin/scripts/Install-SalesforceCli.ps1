@@ -24,8 +24,8 @@ $em = if ($null -ne $Env:PS_EM) { $Env:PS_EM } else { $Env:PS_EM = '*'; $Env:PS_
 
 
 
-Write-Information "INFO: Installing saleforce cli $em$Version$em"
+Write-Information "INFO: Installing salesforce cli $em$Version$em"
 
 npm install @salesforce/cli --global $ProxyArgs
 
-Write-Information "INFO: Installing saleforce cli $em$Version$em - done!"
+Write-Information "INFO: Installing salesforce cli $em$Version$em - done!"
