@@ -1,7 +1,7 @@
 #Requires -version 5.1
 
 param (
-    [string]$PwshVersion = "7.4.0",
+    [string]$PwshVersion = "7.4.6",
     [string]$NugetMinVersion = "2.8.5.201",
     [switch]$InstallWindowsTerminal
 )
@@ -12,8 +12,8 @@ $ThisSlabName = Split-Path $PSScriptRoot -Leaf
 $SlabsRoot = (Resolve-Path(Join-Path $PSScriptRoot '..')).Path
 . "$SlabsRoot/slab-utils/slab-utils.ps1"
 
-if($InstallWindowsTerminal.IsPresent){
-    .\Install-StorageExplorer.ps1
+if( $InstallWindowsTerminal.IsPresent){
+    .\Install-WindowsTerminal.ps1
 }
 
 $ScriptsFolder = Join-Path $PSScriptRoot 'scripts'
