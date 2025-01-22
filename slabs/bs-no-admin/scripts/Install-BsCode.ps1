@@ -38,6 +38,8 @@
  Installs specified version of VS Code 
 
 #> 
+#Requires -PSEdition Core
+
 Param(
     [Parameter(ParameterSetName='Default')]
     [ValidateSet('insider','stable')]
@@ -50,7 +52,7 @@ Param(
 )
 
 $ErrorActionPreference = 'Stop'
-Set-StrictMode  -Version 3
+$PSNativeCommandUseErrorActionPreference = $true
 
 if (!$IsWindows) {
     throw "This script is for windows only. For other platforms see https://www.powershellgallery.com/packages/Install-VSCode"

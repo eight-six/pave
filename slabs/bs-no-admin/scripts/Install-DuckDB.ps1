@@ -1,5 +1,3 @@
-#requires -Version 5.1
-
 <#PSScriptInfo
 
 .VERSION 1.0
@@ -67,11 +65,16 @@ $Env:PAVE_DUCKDB_VER = 1.1.1
 
 #> 
 
+#Requires -PSEdition Core
+
 param (
     [ValidatePattern('\d+\.\d+\.\d+')]
     [string]$Version = $Env:PAVE_DUCKDB_VER ,
     [string]$DownloadRoot = 'https://github.com/duckdb/duckdb/releases/download/'
 )
+
+$ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $true
 
 if ($MyInvocation.InvocationName -eq '.') {
     Write-Warning "This script is not intended to be dot sourced. PLese try again without the $($em)dot sourcing$em operator " -wa 'Continue'
@@ -85,7 +88,7 @@ function do-it {
 
     $App = 'duckdb'
 
-    if ($PSVersionTable.PSVersion.Major -ge 7 -and !$IsWindows) {
+    if (!$IsWindows) {
         throw "This script is for windows only. See https://duckdb.org/docs/installation/?version=stable&environment=cli&platform=win&download_method=direct&architecture=x86_64 for other options"
     }
 

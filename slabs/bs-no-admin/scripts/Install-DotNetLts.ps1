@@ -1,4 +1,7 @@
+#Requires -PSEdition Core
 
+$ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $true
 
 function AddToUserPath{
     param (

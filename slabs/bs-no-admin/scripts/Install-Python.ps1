@@ -69,10 +69,11 @@ When not specified the installer will still complete automatically, but its prog
 ./Install-Python -Version 3.11.2
 
 .EXAMPLE
-$Env:BS_PY_VER = 3.12.3
+$Env:BS_PY_VER = 3.12.4
 ./Install-Python
 
 #> 
+#Requires -PSEdition Core
 
 param (
     [ValidatePattern('\d+\.\d+\.\d+')]
@@ -82,6 +83,7 @@ param (
 )
 
 $ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $true
 
 function PrependToUserPath{
     param (
@@ -99,7 +101,7 @@ function PrependToUserPath{
 }
 
 if (!$IsWindows){
-    throw "This script is for windows only See https://www.python.org/downloads/ for options for you OS."
+    throw "This script is for windows only See https://www.python.org/downloads/ for options for your OS."
 }
 
 $em = if ($null -ne $Env:PS_EM) { $Env:PS_EM } else { $Env:PS_EM = '*', $Env:PS_EM }
@@ -137,5 +139,5 @@ $WindowsStorePythonPaths | ForEach-object {
 }
 
 
-# pip intall xxx --Proxy <proxyurl>
+# pip install xxx --Proxy <proxyurl>
 # $env:LOCALAPPDATA/Programs/Python/Python312/python.exe -m pip install ipykernel -U --user --force-reinstall --Proxy <proxyurl>'

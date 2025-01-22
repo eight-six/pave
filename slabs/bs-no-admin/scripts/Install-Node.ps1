@@ -1,5 +1,3 @@
-#requires -Version 5.1
-
 <#PSScriptInfo
 
 .VERSION 1.0
@@ -68,6 +66,7 @@ $Env:PAVE_NODE_VER = 2.22.10
 
 
 #> 
+#Requires -PSEdition Core
 
 param (
     [ValidatePattern('\d+\.\d+\.\d+')]
@@ -76,8 +75,9 @@ param (
 )
 
 $ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $true
 
-if ($PSVersionTable.PSVersion.Major -ge 7 -and !$IsWindows) {
+if (!$IsWindows) {
     throw "This script is for windows only. See https://nodejs.org/en/download/package-manager for other options"
 }
 

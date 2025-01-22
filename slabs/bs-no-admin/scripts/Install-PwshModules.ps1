@@ -44,6 +44,8 @@
  Installs the specified version of powershell core 
 
 #> 
+#Requires -PSEdition Core
+
 param (
     [hashtable]$Modules,
     [string]$Repository = 'PSGallery',
@@ -52,8 +54,7 @@ param (
 )
 
 $ErrorActionPreference = 'Stop'
-Set-StrictMode  -Version 3
-
+$PSNativeCommandUseErrorActionPreference = $true
 
 $Modules.Keys | % {
     $ModuleName = $_

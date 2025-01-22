@@ -1,5 +1,3 @@
-#requires -Version 5.1
-
 <#PSScriptInfo
 
 .VERSION 1.0
@@ -74,6 +72,7 @@ $Env:BS_GIT_VER = 2.41.0.1
 
 
 #> 
+#Requires -PSEdition Core
 
 param (
     [ValidatePattern('\d+\.\d+\.\d+\.\d+')]
@@ -83,7 +82,7 @@ param (
 )
 
 $ErrorActionPreference = 'Stop'
-Set-StrictMode  -Version 3
+$PSNativeCommandUseErrorActionPreference = $true
 
 if (!$IsWindows) {
     throw "This script is for windows only. See https://git-scm.com/download/$($IsMacOS ? 'mac' : 'linux') "

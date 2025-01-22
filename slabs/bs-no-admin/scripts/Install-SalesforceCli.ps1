@@ -1,12 +1,13 @@
-#requires -Version 5.1
+#requires -PSEdition core
 
 param (
 
 )
 
 $ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $true
 
-if ($PSVersionTable.PSVersion.Major -ge 7 -and !$IsWindows) {
+if (!$IsWindows) {
     throw "This script is for windows only. See https://nodejs.org/en/download/package-manager for other options"
 }
 
@@ -21,8 +22,6 @@ if ($null -ne $Proxy) {
 }
 
 $em = if ($null -ne $Env:PS_EM) { $Env:PS_EM } else { $Env:PS_EM = '*'; $Env:PS_EM }
-
-
 
 Write-Information "INFO: Installing salesforce cli $em$Version$em"
 

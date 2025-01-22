@@ -4,6 +4,9 @@ param(
     [switch]$HideInstaller
 )
 
+$ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $true
+
 Write-Information "INFO: bootstrap: installing AzureDataStudio"
 
 # Write-Information "Issues with UAC!" -InformationAction 'Continue'
