@@ -41,33 +41,21 @@
 <# 
 
 .DESCRIPTION 
- Installs the specified version of powershell core 
+ Installs the specified version of powershell core with local admin privs. 
 
 #> 
+
+#Requires -version 5.1 # Windows Powershell
+
 param (
     [ValidatePattern('7\.\d+\.\d+')]
-    [string]$Version = '7.4.0',
+    [string]$Version = '7.4.6',
     [string]$InstallPath = "$env:LOCALAPPDATA\powershell",
     [string]$DownloadRoot = 'https://github.com/PowerShell/PowerShell/releases/download'
 )
 
 $ErrorActionPreference = 'Stop'
-Set-StrictMode  -Version 3
-
-function AddToUserPath{
-    param (
-		[string]$PathToAdd,
-		[switch]$AddToCurrentSession
-	)
-	
-	$UserPath = [System.Environment]::GetEnvironmentVariable('PATH', 'User')
-	$UserPath += "$(if(-not $UserPath.EndsWith(';')){';'})$PathToAdd"
-	[System.Environment]::SetEnvironmentVariable('PATH', $UserPath, 'User')
-	
-	if($AddToCurrentSession.IsPresent){
-		$Env:Path += "$(if(-not $Env:Path.EndsWith(';')){';'})$PathToAdd"
-	}
-}
+$InformationPreference = 'Continue'
 
 if($InstallPath -eq (Split-Path -Parent ([Environment]::GetCommandLineArgs()[0]) )){
     throw "cannot install another instance of pwsh in the same location as the running instance"
@@ -76,7 +64,6 @@ if($InstallPath -eq (Split-Path -Parent ([Environment]::GetCommandLineArgs()[0])
 # install pwsh
 Write-Information "INFO: $($Env:BS_LOG_HEADER)installing pwsh v$Version"
 
-
 $InstallerFileName = "PowerShell-$Version-win-x64.zip"
 $DownloadUri = "$DownloadRoot/v$Version/$InstallerFileName"
 
@@ -84,8 +71,22 @@ if(Test-Path $InstallPath){
     rm -Path $InstallPath -Recurse -Force
 }
 
-Start-BitsTransfer $DownloadUri
+try {
+    Start-BitsTransfer $DownloadUri
+}
+catch [Runtime.InteropServices.COMException]{
+    Write-Information "error msg: $($_.Exception.Message)"
+    if($_.Exception.Message -notmatch 'MUI Entry'){
+        throw $_
+    } else {
+        Write-Information "Start-BitsTransfer failed, trying Invoke-WebRequest" -InformationAction 'Continue'
+        iwr $DownloadUri -OutFile $InstallerFileName 
+    }
+}
+
 Expand-Archive $InstallerFileName $InstallPath
+
+. $PSScriptRoot/FnAddToUserPath.ps1
 AddToUserPath -PathToAdd $InstallPath -AddToCurrentSession
 
 {
@@ -96,9 +97,9 @@ if(!(Test-path $PROFILE)) {
         md $ProfilePath | Out-Null
     }
     
-    'function prompt{"P$ "}'| Out-File $PROFILE
+    'function prompt{"$($PWD.Path.replace( $Env:USERPROFILE, ''~''))`nP$ "}'| Out-File $PROFILE
 }
-}| pwsh -command - 					#note the sneaky minus = get command from stdin
+} | & "$InstallPath\pwsh" -NoProfile -command - #note the sneaky minus = get command from stdin
 
 Write-Information "INFO: $($Env:BS_LOG_HEADER)installing pwsh v$Version - done"
 
