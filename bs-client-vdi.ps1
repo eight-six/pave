@@ -97,6 +97,3 @@ $Env:PAVE_PY_VERSION -split '\|' | % {
     & ./config-private/configs/uwm-vm/code/doit.ps1
 
 } | & "$Env:LocalAppData\powershell\pwsh" -command - # note the sneaky '-' at the end!
-
-
-#lay reg-tweaks
