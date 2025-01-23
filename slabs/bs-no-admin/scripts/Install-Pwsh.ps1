@@ -50,26 +50,40 @@
 param (
     [ValidatePattern('7\.\d+\.\d+')]
     [string]$Version = '7.4.6',
-    [string]$InstallPath = "$env:LOCALAPPDATA\powershell",
+    [string]$InstallPath = "$env:LOCALAPPDATA\powershell\$Version",
     [string]$DownloadRoot = 'https://github.com/PowerShell/PowerShell/releases/download'
 )
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 
+function em{
+    param(
+
+    [string]$Value
+    )
+
+    $em = '*'
+
+    "$em$Value$em"
+}
+
 if($InstallPath -eq (Split-Path -Parent ([Environment]::GetCommandLineArgs()[0]) )){
     throw "cannot install another instance of pwsh in the same location as the running instance"
 }
 
-# install pwsh
 Write-Information "INFO: $($Env:BS_LOG_HEADER)installing pwsh v$Version"
 
 $InstallerFileName = "PowerShell-$Version-win-x64.zip"
 $DownloadUri = "$DownloadRoot/v$Version/$InstallerFileName"
 
 if(Test-Path $InstallPath){
+    Write-Information "INFO: deleting existing installation in $(em($InstallPath))..."
     rm -Path $InstallPath -Recurse -Force
+    Write-Information "INFO: deleting existing installation in $(em($InstallPath)) - done!"
 }
+
+Write-Information "INFO: downloading zip from $(em($DownloadUri)) to $InstallerFileName..."
 
 try {
     Start-BitsTransfer $DownloadUri
@@ -84,22 +98,35 @@ catch [Runtime.InteropServices.COMException]{
     }
 }
 
+Write-Information "INFO: downloading zip from $(em($DownloadUri)) to $(em($InstallerFileName)) - done!"
+
+Write-Information "INFO: expanding zip from  $(em($InstallerFileName)) to $(em($InstallPath))..."
+
 Expand-Archive $InstallerFileName $InstallPath
+
+Write-Information "INFO: expanding zip from $(em($InstallerFileName)) to $(em($InstallPath)) - done!"
+
+Write-Information "INFO: adding $(em($InstallPath)) to path..."
 
 . $PSScriptRoot/FnAddToUserPath.ps1
 AddToUserPath -PathToAdd $InstallPath -AddToCurrentSession
 
-{
-if(!(Test-path $PROFILE)) {
-    $ProfilePath = Split-Path $PROFILE -Parent
-    
-    if(!(Test-path $ProfilePath)) {
-        md $ProfilePath | Out-Null
-    }
-    
-    'function prompt{"$($PWD.Path.replace( $Env:USERPROFILE, ''~''))`nP$ "}'| Out-File $PROFILE
-}
-} | & "$InstallPath\pwsh" -NoProfile -command - #note the sneaky minus = get command from stdin
+Write-Information "INFO: adding $(em($InstallPath)) to path - done!"
+
+# {
+#     $ErrorActionPreference = 'Stop'
+#     $PSNativeCommandUseErrorActionPreference = $true
+
+#     if(!(Test-path $PROFILE)) {
+#         $ProfilePath = Split-Path $PROFILE -Parent
+        
+#         if(!(Test-path $ProfilePath)) {
+#             md $ProfilePath | Out-Null
+#         }
+        
+#         'function prompt{"$($PWD.Path.replace( $Env:USERPROFILE, ''~''))`nP$ "}'| Out-File $PROFILE
+#     }
+# } | & "$InstallPath\pwsh" -NoProfile -command - #note the sneaky minus(-) = get command from stdin
 
 Write-Information "INFO: $($Env:BS_LOG_HEADER)installing pwsh v$Version - done"
 
