@@ -57,61 +57,48 @@ param (
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 
-function em{
-    param(
-
-    [string]$Value
-    )
-
-    $em = '*'
-
-    "$em$Value$em"
-}
-
 if($InstallPath -eq (Split-Path -Parent ([Environment]::GetCommandLineArgs()[0]) )){
     throw "cannot install another instance of pwsh in the same location as the running instance"
 }
 
-Write-Information "INFO: $($Env:BS_LOG_HEADER)installing pwsh v$Version"
+Push-LogAction "$($Env:BS_LOG_HEADER)installing pwsh v$Version" -IncrementActionLevel
 
 $InstallerFileName = "PowerShell-$Version-win-x64.zip"
 $DownloadUri = "$DownloadRoot/v$Version/$InstallerFileName"
 
 if(Test-Path $InstallPath){
-    Write-Information "INFO: deleting existing installation in $(em($InstallPath))..."
+    Push-LogAction "deleting existing installation in $(emph $InstallPath)"
     rm -Path $InstallPath -Recurse -Force
-    Write-Information "INFO: deleting existing installation in $(em($InstallPath)) - done!"
+    Pop-LogAction
 }
 
-Write-Information "INFO: downloading zip from $(em($DownloadUri)) to $InstallerFileName..."
+Push-LogAction "downloading zip from $(emph $DownloadUri) to $InstallerFileName"
 
 try {
     Start-BitsTransfer $DownloadUri
 }
 catch [Runtime.InteropServices.COMException]{
-    Write-Information "error msg: $($_.Exception.Message)"
+    Write-Log "Download failed with $(emph Start-BitsTransfer) - error message: $(under $_.Exception.Message)"
+
     if($_.Exception.Message -notmatch 'MUI Entry'){
         throw $_
     } else {
-        Write-Information "Start-BitsTransfer failed, trying Invoke-WebRequest" -InformationAction 'Continue'
+        Write-Log "Start-BitsTransfer failed, trying Invoke-WebRequest"
         iwr $DownloadUri -OutFile $InstallerFileName 
     }
 }
 
-Write-Information "INFO: downloading zip from $(em($DownloadUri)) to $(em($InstallerFileName)) - done!"
+Pop-LogAction
 
-Write-Information "INFO: expanding zip from  $(em($InstallerFileName)) to $(em($InstallPath))..."
-
+# expand installer
+Push-LogAction "expanding zip from  $(emph $InstallerFileName) to $(emph $InstallPath)"
 Expand-Archive $InstallerFileName $InstallPath
+Pop-LogAction
 
-Write-Information "INFO: expanding zip from $(em($InstallerFileName)) to $(em($InstallPath)) - done!"
-
-Write-Information "INFO: adding $(em($InstallPath)) to path..."
-
+Push-LogAction "adding $(emph $InstallPath) to path..."
 . $PSScriptRoot/FnAddToUserPath.ps1
 AddToUserPath -PathToAdd $InstallPath -AddToCurrentSession
-
-Write-Information "INFO: adding $(em($InstallPath)) to path - done!"
+Pop-LogAction
 
 # {
 #     $ErrorActionPreference = 'Stop'
@@ -128,6 +115,4 @@ Write-Information "INFO: adding $(em($InstallPath)) to path - done!"
 #     }
 # } | & "$InstallPath\pwsh" -NoProfile -command - #note the sneaky minus(-) = get command from stdin
 
-Write-Information "INFO: $($Env:BS_LOG_HEADER)installing pwsh v$Version - done"
-
-
+Pop-LogAction

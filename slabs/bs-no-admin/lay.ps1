@@ -12,34 +12,46 @@ $ThisSlabName = Split-Path $PSScriptRoot -Leaf
 $SlabsRoot = (Resolve-Path(Join-Path $PSScriptRoot '..')).Path
 . "$SlabsRoot/slab-utils/slab-utils.ps1"
 
+header $ThisSlabName
+
 if( $InstallWindowsTerminal.IsPresent){
+    $msg = "installing windows terminal"
+    subheader
+    log $msg -StartAction
     .\Install-WindowsTerminal.ps1
+    log $msg -CompleteAction
+    subheader
 }
 
 $ScriptsFolder = Join-Path $PSScriptRoot 'scripts'
+subheader 'pwsh'
+
 & "$ScriptsFolder\Install-Pwsh.ps1" -Version $PwshVersion
 
-$LogMessage = "INFO: $(emph $ThisSlabName) installing nuget >= $NugetMinVersion"
-Write-Information "$LogMessage$LogStart"
-Install-PackageProvider -Name NuGet -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force
-Write-Information "$LogMessage$LogDone"
+Push-LogAction "$(emph $ThisSlabName) installing nuget >= $NugetMinVersion"
+# Install-PackageProvider -Name NuGet -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force
+Pop-LogAction
 
-{
-    $VsBuildType = 'insider'
-    $VsCodeExtensions = @(
-        'GitHub.remotehub'
-        'mechatroner.rainbow-csv'
-        'ms-azuretools.vscode-bicep'
-        'ms-dotnettools.vscode-dotnet-runtime'
-        'ms-vscode.azure-repos'
-        'ms-vscode.powershell'
-        'ms-vscode.remote-repositories'
-    )
+subheader
+
+# {
+#     $VsBuildType = 'insider'
+#     $VsCodeExtensions = @(
+#         'GitHub.remotehub'
+#         'mechatroner.rainbow-csv'
+#         'ms-azuretools.vscode-bicep'
+#         'ms-dotnettools.vscode-dotnet-runtime'
+#         'ms-vscode.azure-repos'
+#         'ms-vscode.powershell'
+#         'ms-vscode.remote-repositories'
+#     )
     
-    & ".\Scripts\Install-DotNetLts.ps1"
-    & ".\Scripts\Install-GitForWindows.ps1" 
-    & ".\Scripts\Install-BsCode.ps1" -BuildType $VsBuildType #-UsePSGallery #-VsCodeExtensions $VsCodeExtensions
-    & ".\Scripts\Install-AzureDataStudio.ps1"
-    & ".\Scripts\Install-StorageExplorer.ps1"
+#     & ".\Scripts\Install-DotNetLts.ps1"
+#     & ".\Scripts\Install-GitForWindows.ps1" 
+#     & ".\Scripts\Install-BsCode.ps1" -BuildType $VsBuildType #-UsePSGallery #-VsCodeExtensions $VsCodeExtensions
+#     & ".\Scripts\Install-AzureDataStudio.ps1"
+#     & ".\Scripts\Install-StorageExplorer.ps1"
     
-} | & "$Env:LocalAppData\powershell\pwsh" -WorkingDirectory $PSScriptRoot -noexit  -command -
+# } | & "$Env:LocalAppData\powershell\pwsh" -WorkingDirectory $PSScriptRoot -noexit  -command -
+
+Push-LogAction 

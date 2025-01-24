@@ -1,0 +1,8 @@
+
+LogOptions:
+  InfoPrefix: "INFO:"
+  Emph: '*'
+  Bold: '**'
+  HeaderChar: '='
+  SubheaderChar: '-'
+

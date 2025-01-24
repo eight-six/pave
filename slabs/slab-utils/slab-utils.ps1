@@ -7,18 +7,23 @@ $SlabsRoot = (Resolve-Path(Join-Path $PSScriptRoot '..')).Path
 $LayFile = 'lay.ps1'
 $InfosFile = 'info.psd1'
 
-$em = if ($null -ne $Env:EM) { $Env:EM } else { '*' }
-$LogStart = if ($null -ne $Env:LOG_START) { $Env:LOG_START } else { '...' }
-$LogDone = if ($null -ne $Env:LOG_DONE) { $Env:LOG_DONE } else { ' - done!' }
+# get from ~/.pave
+$Config = @"
+logOptions:
+  infoPrefix: ""
+  actionStartSuffix: …
+  levelChar: +
+  subheaderChar: '-'
+  padChar: ""
+  actionCompletedSuffix: ✔
+  bold: '**'
+  emph: '*'
+  headerChar: =
+"@
 
-function emph {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Text
-    )
-    
-    return "$em$($Text)$em"
-}
+$PaveConfig = $Config | ConvertFrom-Yaml
+$LogOptions = $PaveConfig.LogOptions
+
 
 function Deploy {
     [CmdletBinding()]
@@ -34,8 +39,9 @@ function Deploy {
     )
 
     $LayFilePath = "$SlabsRoot\$SlabName\$LayFile" 
-    $LogMessage = "INFO: $(emph $CallerName) deploying $(emph $SlabName) from $(emph $LayFilePath)"
-    Write-Information "$LogMessage$($LogStart)"
+    $LogAction = "$(emph $CallerName) deploying $(emph $SlabName) from $(emph $LayFilePath)"
+    Log $LogAction -StartAction
     & $LayFilePath @Params
-    Write-Information "$LogMessage$($LogDone)" 
+    Log $LogAction -CompleteAction
+
 }
