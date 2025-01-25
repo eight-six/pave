@@ -61,7 +61,7 @@ if($InstallPath -eq (Split-Path -Parent ([Environment]::GetCommandLineArgs()[0])
     throw "cannot install another instance of pwsh in the same location as the running instance"
 }
 
-Push-LogAction "$($Env:BS_LOG_HEADER)installing pwsh v$Version" -IncrementActionLevel
+Push-LogAction "installing $(bold 'pwsh') v$Version" -IncrementActionLevel
 
 $InstallerFileName = "PowerShell-$Version-win-x64.zip"
 $DownloadUri = "$DownloadRoot/v$Version/$InstallerFileName"
@@ -78,12 +78,12 @@ try {
     Start-BitsTransfer $DownloadUri
 }
 catch [Runtime.InteropServices.COMException]{
-    Write-Log "Download failed with $(emph Start-BitsTransfer) - error message: $(under $_.Exception.Message)"
+    Write-LogEntry "Download failed with $(emph Start-BitsTransfer) - error message: $(under $_.Exception.Message)"
 
     if($_.Exception.Message -notmatch 'MUI Entry'){
         throw $_
     } else {
-        Write-Log "Start-BitsTransfer failed, trying Invoke-WebRequest"
+        Write-LogEntry "Start-BitsTransfer failed, trying Invoke-WebRequest"
         iwr $DownloadUri -OutFile $InstallerFileName 
     }
 }
@@ -95,7 +95,7 @@ Push-LogAction "expanding zip from  $(emph $InstallerFileName) to $(emph $Instal
 Expand-Archive $InstallerFileName $InstallPath
 Pop-LogAction
 
-Push-LogAction "adding $(emph $InstallPath) to path..."
+Push-LogAction "adding $(emph $InstallPath) to path"
 . $PSScriptRoot/FnAddToUserPath.ps1
 AddToUserPath -PathToAdd $InstallPath -AddToCurrentSession
 Pop-LogAction

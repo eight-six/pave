@@ -12,27 +12,22 @@ $ThisSlabName = Split-Path $PSScriptRoot -Leaf
 $SlabsRoot = (Resolve-Path(Join-Path $PSScriptRoot '..')).Path
 . "$SlabsRoot/slab-utils/slab-utils.ps1"
 
-header $ThisSlabName
+log-header $ThisSlabName
 
 if( $InstallWindowsTerminal.IsPresent){
-    $msg = "installing windows terminal"
-    subheader
-    log $msg -StartAction
+    log-subheader 'Windows Terminal'
     .\Install-WindowsTerminal.ps1
-    log $msg -CompleteAction
-    subheader
 }
 
 $ScriptsFolder = Join-Path $PSScriptRoot 'scripts'
-subheader 'pwsh'
-
+log-subheader 'pwsh'
 & "$ScriptsFolder\Install-Pwsh.ps1" -Version $PwshVersion
 
-Push-LogAction "$(emph $ThisSlabName) installing nuget >= $NugetMinVersion"
+log-subheader 'nuget'
+Push-LogAction "$(emph $ThisSlabName) installing nuget >= $NugetMinVersion" -IncrementActionLevel
 # Install-PackageProvider -Name NuGet -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force
 Pop-LogAction
 
-subheader
 
 # {
 #     $VsBuildType = 'insider'
@@ -54,4 +49,4 @@ subheader
     
 # } | & "$Env:LocalAppData\powershell\pwsh" -WorkingDirectory $PSScriptRoot -noexit  -command -
 
-Push-LogAction 
+log-header "$ThisSlabName - complete"

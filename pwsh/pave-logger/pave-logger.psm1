@@ -7,6 +7,19 @@ $Script:Stack = [collections.stack]::new()
 $Script:LogTarget = 'Information'
 
 
+$LogOptions = [ordered]@{
+    actionCompletedSuffix= '✔'
+    actionStartSuffix= '…'
+    bold= '**'
+    emph= '*'
+    headerChar= '='
+    infoPrefix= ""
+    levelChar= '+'
+    padChar= ""
+    subheaderChar= '-'
+    timestamp= $false
+}
+
 $EmphStart = '<em>'
 $EmphEnd   = '</em>'
 $BoldStart = '<b>'
@@ -31,7 +44,7 @@ function Set-LogTargetStream {
     $Script:LogTarget = $Target
 }
 
-function Write-Log {
+function Write-LogEntry {
     param (
         [string]$Message,
         [switch]$NoColor
@@ -39,20 +52,29 @@ function Write-Log {
 
     Write-verbose "message: $Message" #-Verbose
 
+    $DefaultStyle = "$($PSStyle.Reset)$($PSStyle.Foreground.White)"
+    $EmphStyle = "$($PSStyle.Reset)$($PSStyle.Foreground.BrightBlue)"
+
+    $Message = "$($DefaultStyle)$Message"
+
+    if($LogOptions.timestamp){
+        $Message = "$($PSStyle.Reset)$($PSStyle.Foreground.BrightBlack)$(get-date -Format 'u')$($PSStyle.Reset) $Message"
+    } 
+
     switch ($Script:LogTarget) {
         {$_ -in 'Default', 'Information'} {  
             if($NoColor.IsPresent){
                 $Message = $Message -replace $EmphStart, '*'
                 $Message = $Message -replace $EmphEnd, '*'
             } else {
-                $Message = $Message -replace $EmphStart, $PSStyle.Foreground.Magenta
-                $Message = $Message -replace $EmphEnd, $PSStyle.Reset
+                $Message = $Message -replace $EmphStart, $EmphStyle
+                $Message = $Message -replace $EmphEnd, $DefaultStyle
                 $Message = $Message -replace $BoldStart, $PSStyle.Bold
-                $Message = $Message -replace $BoldEnd, $PSStyle.Bold
+                $Message = $Message -replace $BoldEnd, $PSStyle.BoldOff
                 $Message = $Message -replace $UnderlineStart, $PSStyle.Underline
                 $Message = $Message -replace $UnderlineEnd, $PSStyle.UnderlineOff
                 
-                $Message = "$($PSStyle.Foreground.Cyan)$Message$($PSStyle.Reset)"
+                $Message = "$Message$($PSStyle.Reset)"
             }
             Write-verbose "message: $Message" #-Verbose
 
@@ -89,9 +111,9 @@ function Push-LogAction {
         $Tokens += '+' * $Script:ActionLevel
     }
 
-    $Tokens +=  $Text, '...'
+    $Tokens +=  $Text, $LogOptions.actionStartSuffix
 
-    Write-Log ($Tokens -join ' ')
+    Write-LogEntry ($Tokens -join ' ')
 }
 
 function Pop-LogAction {
@@ -109,14 +131,14 @@ function Pop-LogAction {
             $Tokens += '+' * $Script:ActionLevel
         }
     
-        $Tokens +=  $Item.Text, '✔️'
+        $Tokens +=  $Item.Text, "$($PSStyle.Foreground.Green)$($LogOptions.actionCompletedSuffix)$($PSStyle.Reset)$($PSStyle.Foreground.Cyan)"
 
         if ($Item.LevelIncremented) {
             $Script:ActionLevel = $Script:ActionLevel -gt 0 ?  $Script:ActionLevel - 1 : 0
         
         }
 
-        Write-Log ($Tokens -join ' ') 
+        Write-LogEntry ($Tokens -join ' ') 
     # }
 
 }
@@ -148,32 +170,32 @@ function under {
     "$($UnderlineStart)$Text$($UnderlineEnd)"
 }
 
-function log {
-    param(
-        [Parameter(Mandatory = $true, ParameterSetName = 'Default')]
-        [Parameter(Mandatory = $true, ParameterSetName = 'StartAction')]
-        [Parameter(Mandatory = $true, ParameterSetName = 'CompleteAction')]
-        [string]$Text,
-        [Parameter(Mandatory = $true, ParameterSetName = 'StartAction')]
-        [switch]$StartAction,
-        [Parameter(Mandatory = $true, ParameterSetName = 'CompleteAction')]
-        [switch]$CompleteAction,
-        [int]$Level = 0
-    )
+# function log {
+#     param(
+#         [Parameter(Mandatory = $true, ParameterSetName = 'Default')]
+#         [Parameter(Mandatory = $true, ParameterSetName = 'StartAction')]
+#         [Parameter(Mandatory = $true, ParameterSetName = 'CompleteAction')]
+#         [string]$Text,
+#         [Parameter(Mandatory = $true, ParameterSetName = 'StartAction')]
+#         [switch]$StartAction,
+#         [Parameter(Mandatory = $true, ParameterSetName = 'CompleteAction')]
+#         [switch]$CompleteAction,
+#         [int]$Level = 0
+#     )
 
-    $LevelText = $LogOptions.LevelChar * $Level
-    $Tokens =  $LevelText , $LogOptions.InfoPrefix, $Text
+#     $LevelText = $LogOptions.LevelChar * $Level
+#     $Tokens =  $LevelText , $LogOptions.InfoPrefix, $Text
 
-    if ($StartAction.IsPresent) {
-        $Tokens += $LogOptions.ActionStartSuffix
-    }
+#     if ($StartAction.IsPresent) {
+#         $Tokens += $LogOptions.ActionStartSuffix
+#     }
 
-    if ($CompleteAction.IsPresent) {
-        $Tokens += $LogOptions.ActionCompletedSuffix
-    }
+#     if ($CompleteAction.IsPresent) {
+#         $Tokens += $LogOptions.ActionCompletedSuffix
+#     }
     
-    $Tokens -join $LogOptions.PadChar
-}
+#     $Tokens -join $LogOptions.PadChar
+# }
 
 function Write-LogHeader {
     param(
@@ -181,12 +203,18 @@ function Write-LogHeader {
         [string]$HeaderChar = $LogOptions.HeaderChar
     )
 
+    $WindowSize = [Math]::Min($Host.UI.RawUI.WindowSize.Width, $Script:LogOptions.maxLineLength) - 1
+
+    if($Script:LogOptions.timestamp){
+        $WindowSize -= 21
+    }
+
     if($Text.Length -eq 0){
-        Write-Log "$($HeaderChar * $Pre) $Text $($HeaderChar * $Post)"
+        Write-LogEntry "$($HeaderChar * $Pre) $Text $($HeaderChar * $Post)"
     } else {   
-        $Pre = [int](($Host.UI.RawUI.WindowSize.Width - ($Text.Length + 2)) / 2)
-        $Post = $Host.UI.RawUI.WindowSize.Width - ($Pre + $Text.Length + 2)
-        Write-Log "$($HeaderChar * $Pre) $Text $($HeaderChar * $Post)"
+        $Pre = [int](($WindowSize - ($Text.Length + 2)) / 2)
+        $Post = $WindowSize - ($Pre + $Text.Length + 2)
+        Write-LogEntry "$($HeaderChar * $Pre) $Text $($HeaderChar * $Post)"
     }
 }
 
@@ -195,9 +223,20 @@ function Write-LogSubheader {
         [string]$Text
     )
 
-    header $text -HeaderChar $LogOptions.SubheaderChar
+    Write-LogHeader $text -HeaderChar $LogOptions.SubheaderChar
 }
 
+function Get-LogOptions {
+    $Script:LogOptions
+}
 
-set-alias header Write-LogHeader
-set-alias subheader Write-LogSubheader
+if(Test-Path "$HOME/.pave-logger"){
+    # get from ~/.pave-logger
+    $LogOptions = gc -raw "$HOME/.pave-logger" | ConvertFrom-Yaml -Ordered
+} else {
+    $LogOptions | ConvertTo-Yaml | Out-File "$HOME/.pave-logger"
+}
+
+Set-Alias log Write-LogEntry
+set-alias log-header Write-LogHeader
+set-alias log-subheader Write-LogSubheader
