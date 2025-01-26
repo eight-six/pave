@@ -5,7 +5,8 @@
 param (
     [string]$PwshVersion = "7.4.6",
     [string]$NugetMinVersion = "2.8.5.201",
-    [switch]$InstallWindowsTerminal
+    [switch]$InstallWindowsTerminal,
+    [switch]$SkipDownload
 )
 
 $ErrorActionPreference = 'Stop'
@@ -24,19 +25,19 @@ if( $InstallWindowsTerminal.IsPresent){
 $ScriptsFolder = Join-Path $PSScriptRoot 'scripts'
 log-subheader 'pwsh'
 
-$PwshResult = & "$ScriptsFolder\Install-Pwsh.ps1" -Version $PwshVersion
+$PwshResult = & "$ScriptsFolder\Install-Pwsh.ps1" -Version $PwshVersion -SkipDownload $SkipDownload
 
 log-subheader 'nuget'
 Push-LogAction "$(emph $ThisSlabName) installing nuget >= $NugetMinVersion" -IncrementActionLevel
 Install-PackageProvider -Name NuGet -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force
 Pop-LogAction
 
-log-subheader 'apps'
+log-subheader 'default apps'
 $AppScriptsFilePath = Join-Path $ScriptsFolder ''
-$ExitCode  = & $PwshResult.Path -WorkingDirectory $PSScriptRoot -NoProfile -File $AppScriptsFilePath
+$ExitCode = & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $AppScriptsFilePath
 
 if($ExitCode -ne 0){
-    throw "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.Path) failed."
+    throw "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.PwshPath) failed."
 }
 
 log-header "$ThisSlabName - complete"

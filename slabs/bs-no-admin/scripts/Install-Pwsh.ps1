@@ -51,69 +51,81 @@
 
 param (
     [ValidatePattern('7\.\d+\.\d+')]
-    [string]$Version = '7.5',
+    [string]$Version = '7.5.0',
     [string]$InstallPath = "$env:LOCALAPPDATA\powershell\$Version",
-    [string]$DownloadRoot = 'https://github.com/PowerShell/PowerShell/releases/download'
+    [string]$DownloadRoot = 'https://github.com/PowerShell/PowerShell/releases/download',
+    [switch]$SkipDownload
 )
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 
-if($InstallPath -eq (Split-Path -Parent ([Environment]::GetCommandLineArgs()[0]) )){
-    throw "cannot install another instance of pwsh in the same location as the running instance"
-}
-
-Push-LogAction "installing $(bold 'pwsh') v$Version" -IncrementActionLevel
-
-$InstallerFileName = "PowerShell-$Version-win-x64.zip"
-$DownloadUri = "$DownloadRoot/v$Version/$InstallerFileName"
-
-if(Test-Path $InstallPath){
-    Push-LogAction "deleting existing installation in $(emph $InstallPath)"
-    rm -Path $InstallPath -Recurse -Force
-    Pop-LogAction
-}
-
-Push-LogAction "downloading zip from $(emph $DownloadUri) to $InstallerFileName"
-
 try {
-    Start-BitsTransfer $DownloadUri
-}
-catch [Runtime.InteropServices.COMException]{
-    Write-LogEntry "Download failed with $(emph Start-BitsTransfer) - error message: $(under $_.Exception.Message)"
-
-    if($_.Exception.Message -notmatch 'MUI Entry'){
-        throw $_
-    } else {
-        Write-LogEntry "Start-BitsTransfer failed, trying Invoke-WebRequest"
-        iwr $DownloadUri -OutFile $InstallerFileName 
+    
+    if ($InstallPath -eq (Split-Path -Parent ([Environment]::GetCommandLineArgs()[0]) )) {
+        throw "cannot install another instance of pwsh in the same location as the running instance"
     }
-}
 
-Pop-LogAction
+    Push-LogAction "installing $(bold 'pwsh') v$Version" -IncrementActionLevel
 
-# expand installer
-Push-LogAction "expanding zip from  $(emph $InstallerFileName) to $(emph $InstallPath)"
-Expand-Archive $InstallerFileName $InstallPath
-Pop-LogAction
+    $InstallerFileName = "PowerShell-$Version-win-x64.zip"
+    $DownloadUri = "$DownloadRoot/v$Version/$InstallerFileName"
 
-Push-LogAction "adding $(emph $InstallPath) to path"
-. $PSScriptRoot/FnAddToUserPath.ps1
-Add-UserEnvVar -PathToAdd $InstallPath -AddToCurrentSession
-Pop-LogAction
+    if (Test-Path $InstallPath) {
+        Push-LogAction "deleting existing installation in $(emph $InstallPath)"
+        rm -Path $InstallPath -Recurse -Force
+        Pop-LogAction
+    }
 
-{
-    $ErrorActionPreference = 'Stop'
-    $PSNativeCommandUseErrorActionPreference = $true
-
-    if(!(Test-path $PROFILE)) {
-        $ProfilePath = Split-Path $PROFILE -Parent
-        
-        if(!(Test-path $ProfilePath)) {
-            md $ProfilePath | Out-Null
+    if ($SkipDownload.IsPresent) {
+        Write-LogEntry "SkipDownload was specified. Required install must exist at $(emph ".\$InstallerFileName")"
+    }
+    else {
+        Push-LogAction "downloading zip from $(emph $DownloadUri) to $InstallerFileName"
+   
+        try {
+            Start-BitsTransfer $DownloadUri
         }
+        catch [Runtime.InteropServices.COMException] {
+            Write-LogEntry "Download failed with $(emph Start-BitsTransfer) - error message: $(under $_.Exception.Message)"
         
-        $Prompt = @'
+            if ($_.Exception.Message -notmatch 'MUI Entry') {
+                throw $_
+            }
+            else {
+                Write-LogEntry "Start-BitsTransfer failed, trying Invoke-WebRequest"
+                iwr $DownloadUri -OutFile $InstallerFileName 
+            }
+        }
+    
+        Pop-LogAction
+    }
+
+    # expand installer
+    Push-LogAction "expanding zip from  $(emph $InstallerFileName) to $(emph $InstallPath)"
+    $InstallerFilePath = Join-Path $Pwd.Path $InstallerFileName
+    if (!(Test-Path $InstallerFilePath)) {
+        throw "Installer not found at $(emph $InstallerFilePath)"
+    }
+    Expand-Archive $InstallerFileName $InstallPath
+    Pop-LogAction
+
+    Push-LogAction "adding $(emph $InstallPath) to path"
+    Add-UserPath -PathToAdd $InstallPath -AtStart -AddToCurrentSession
+    Pop-LogAction
+
+    {
+        $ErrorActionPreference = 'Stop'
+        $PSNativeCommandUseErrorActionPreference = $true
+
+        if (!(Test-path $PROFILE)) {
+            $ProfilePath = Split-Path $PROFILE -Parent
+        
+            if (!(Test-path $ProfilePath)) {
+                md $ProfilePath | Out-Null
+            }
+        
+            $Prompt = @'
 function prompt {        
     $Dollar = $IsAdmin ? '#' : '$'
     $Color = $IsAdmin ? $PSStyle.Formatting.Error : $PSStyle.Formatting.White
@@ -130,8 +142,19 @@ function prompt {
     '', $Line1, $Line2 -join "`n"
 }
 '@  
-        $Prompt | Out-File $PROFILE
-    }
-} |  & "$InstallPath\pwsh" -NoProfile -command - #note the sneaky minus(-) = get command from stdin
+            $Prompt | Out-File $PROFILE
+        }
+    } |  & "$InstallPath\pwsh" -NoProfile -command - #note the sneaky minus(-) = get command from stdin
 
-Pop-LogAction
+    Pop-LogAction
+
+    [PSCustomObject]@{
+        PwshPath = "$InstallPath\pwsh"
+        Version  = $Version
+    }
+
+}
+catch {
+    Clear-LogAction
+    throw $_
+}

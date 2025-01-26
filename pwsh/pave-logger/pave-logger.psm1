@@ -82,10 +82,6 @@ function Get-ActionLevel {
     $Script:ActionLevel
 }
 
-function Clear-ActionLevel {
-    $Script:ActionLevel = 0
-}
-
 function Set-LogTargetStream {
     param(
         [ValidateSet('Default', 'Information', 'Output', 'Host')]
@@ -95,16 +91,25 @@ function Set-LogTargetStream {
     $Script:LogTarget = $Target
 }
 
+function Clear-LogAction {
+    $Script:ActionLevel = 0
+    $Script:Stack = [collections.stack]::new()
+}
+
 function Write-LogEntry {
     param (
         [string]$Message,
-        [switch]$NoColor
+        [switch]$NoColor,
+        [switch]$IgnoreActionLevel
     )
 
     Write-verbose "message: $Message" #-Verbose
 
-
     $Message = "$($DefaultStyle)$Message"
+
+    if ($Script:ActionLevel -gt 0 -and !$IgnoreActionLevel.IsPresent ) {
+        $Message = ($Script:LogOptions.levelChar * $Script:ActionLevel) + ' ' + $Message
+    }
 
     if ($LogOptions.timestamp) {
         $Message = "$($AnsiColor.Reset)$($AnsiColor.Foreground.BrightBlack)$(get-date -Format 'u')$($AnsiColor.Reset) $Message"
@@ -155,13 +160,7 @@ function Push-LogAction {
     }
 
     $Script:Stack.Push([pscustomobject]@{Text = $text; LevelIncremented = $IncrementActionLevel.IsPresent })
-    $Tokens = @()
-    
-    if ($Script:ActionLevel -gt 0) {
-        $Tokens += '+' * $Script:ActionLevel
-    }
-
-    $Tokens += $Text, $LogOptions.actionStartSuffix
+    $Tokens = $Text, $LogOptions.actionStartSuffix
 
     Write-LogEntry ($Tokens -join ' ')
 }
@@ -171,26 +170,22 @@ function Pop-LogAction {
        
     )
 
-    # if ( $Script:Stack.Count -eq 0) {
-    $Item = $Script:Stack.Pop()
-    Write-verbose "item $($Item | ConvertTo-Json -Compress)" #-Verbose
-
-    $Tokens = @()
-    
-    if ($Script:ActionLevel -gt 0) {
-        $Tokens += '+' * $Script:ActionLevel
+    Write-Verbose "Stack count: $($Script:Stack.Count)" -verbose
+    if ($Script:Stack.Count -gt 0) {
+        # if ($null -ne $Script:Stack.Peek()) {
+        $Item = $Script:Stack.Pop()
+        Write-verbose "item $($Item | ConvertTo-Json -Compress)" #-Verbose
+            
+        $Tokens = $Item.Text, "$($AnsiColor.Foreground.Green)$($AnsiColor.Reset)$DefaultStyle"
+            
+        Write-LogEntry ($Tokens -join ' ') 
+            
+        if ($Item.LevelIncremented) {
+            $Script:ActionLevel = if ($Script:ActionLevel -gt 0) { $Script:ActionLevel - 1 } else { 0 }
+                
+        }
+        
     }
-    
-    $Tokens += $Item.Text, "$($AnsiColor.Foreground.Green)$($AnsiColor.Reset)$DefaultStyle"
-
-    if ($Item.LevelIncremented) {
-        $Script:ActionLevel = if ($Script:ActionLevel -gt 0) { $Script:ActionLevel - 1 } else { 0 }
-    
-    }
-
-    Write-LogEntry ($Tokens -join ' ') 
-    # }
-
 }
 
 function emph {
@@ -260,12 +255,12 @@ function Write-LogHeader {
     }
 
     if ($Text.Length -eq 0) {
-        Write-LogEntry "$($HeaderChar * $WindowSize)"
+        Write-LogEntry "$($HeaderChar * $WindowSize)" -IgnoreActionLevel
     }
     else {   
         $Pre = [int](($WindowSize - ($Text.Length + 2)) / 2)
         $Post = $WindowSize - ($Pre + $Text.Length + 2)
-        Write-LogEntry "$($HeaderChar * $Pre) $Text $($HeaderChar * $Post)"
+        Write-LogEntry "$($HeaderChar * $Pre) $Text $($HeaderChar * $Post)" -IgnoreActionLevel
     }
 }
 

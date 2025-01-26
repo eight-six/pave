@@ -2,11 +2,11 @@
 #Requires -modules pave-logger
 #Requires -modules pave-utils
 
-
+$ScriptsFolder = Join-Path $PSScriptRoot 'scripts'
 $VsBuildType = 'insiders'
 
-& ".\Scripts\Install-DotNetLts.ps1"
-& ".\Scripts\Install-GitForWindows.ps1" 
-& ".\Scripts\Install-BsCode.ps1" -BuildType $VsBuildType
-& ".\Scripts\Install-AzureDataStudio.ps1"
-& ".\Scripts\Install-StorageExplorer.ps1"
+& "$ScriptsFolder\Scripts\Install-DotNetLts.ps1"
+& "$ScriptsFolder\Scripts\Install-GitForWindows.ps1" 
+& "$ScriptsFolder\Scripts\Install-BsCode.ps1" -BuildType $VsBuildType
+& "$ScriptsFolder\Scripts\Install-AzureDataStudio.ps1"
+& "$ScriptsFolder\Scripts\Install-StorageExplorer.ps1"

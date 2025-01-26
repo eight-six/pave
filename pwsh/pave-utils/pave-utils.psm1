@@ -3,7 +3,7 @@
 using namespace System
 
 $ErrorActionPreference = 'Stop'
-$VerbosePreference = 'Continue'
+$VerbosePreference = 'SilentlyContinue'
 
 New-Variable -Name 'ENV_VAR_PATH' -Value 'PATH' -Option Constant -Scope 'Script'
 
