@@ -1,8 +1,12 @@
 
-LogOptions:
-  InfoPrefix: "INFO:"
-  Emph: '*'
-  Bold: '**'
-  HeaderChar: '='
-  SubheaderChar: '-'
+apps:
+- name: DotNetLts
+  version: latest
+- name: GitForWindows
+  version: 2.47.1.2
+- name: VSCodeInsiders
+  version: latest
+- name: AzureDataStudio
+  version: latest
+
 

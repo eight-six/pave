@@ -46,10 +46,12 @@
 #> 
 
 #Requires -version 5.1 # Windows Powershell
+#Requires -modules pave-logger
+#Requires -modules pave-utils
 
 param (
     [ValidatePattern('7\.\d+\.\d+')]
-    [string]$Version = '7.4.6',
+    [string]$Version = '7.5',
     [string]$InstallPath = "$env:LOCALAPPDATA\powershell\$Version",
     [string]$DownloadRoot = 'https://github.com/PowerShell/PowerShell/releases/download'
 )
@@ -97,22 +99,39 @@ Pop-LogAction
 
 Push-LogAction "adding $(emph $InstallPath) to path"
 . $PSScriptRoot/FnAddToUserPath.ps1
-AddToUserPath -PathToAdd $InstallPath -AddToCurrentSession
+Add-UserEnvVar -PathToAdd $InstallPath -AddToCurrentSession
 Pop-LogAction
 
-# {
-#     $ErrorActionPreference = 'Stop'
-#     $PSNativeCommandUseErrorActionPreference = $true
+{
+    $ErrorActionPreference = 'Stop'
+    $PSNativeCommandUseErrorActionPreference = $true
 
-#     if(!(Test-path $PROFILE)) {
-#         $ProfilePath = Split-Path $PROFILE -Parent
+    if(!(Test-path $PROFILE)) {
+        $ProfilePath = Split-Path $PROFILE -Parent
         
-#         if(!(Test-path $ProfilePath)) {
-#             md $ProfilePath | Out-Null
-#         }
+        if(!(Test-path $ProfilePath)) {
+            md $ProfilePath | Out-Null
+        }
         
-#         'function prompt{"$($PWD.Path.replace( $Env:USERPROFILE, ''~''))`nP$ "}'| Out-File $PROFILE
-#     }
-# } | & "$InstallPath\pwsh" -NoProfile -command - #note the sneaky minus(-) = get command from stdin
+        $Prompt = @'
+function prompt {        
+    $Dollar = $IsAdmin ? '#' : '$'
+    $Color = $IsAdmin ? $PSStyle.Formatting.Error : $PSStyle.Formatting.White
+    $Options = Get-PSReadLineOption
+
+    $Line1 = @(
+        $Options.CommentColor
+        $Pwd.Path.Replace($HOME, '~')
+        $PSStyle.Reset
+    ) -join ''
+
+    $Line2 = "$($Color)P$Dollar $($PSStyle.Reset)"
+
+    '', $Line1, $Line2 -join "`n"
+}
+'@  
+        $Prompt | Out-File $PROFILE
+    }
+} |  & "$InstallPath\pwsh" -NoProfile -command - #note the sneaky minus(-) = get command from stdin
 
 Pop-LogAction

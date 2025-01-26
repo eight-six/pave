@@ -3,29 +3,17 @@
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $true
 
-function AddToUserPath{
-    param (
-		[string]$PathToAdd,
-		[switch]$AddToCurrentSession
-	)
-	
-	$UserPath = [System.Environment]::GetEnvironmentVariable('PATH', 'User')
-	$UserPath += "$(if(-not $UserPath.EndsWith(';')){';'})$PathToAdd"
-	[System.Environment]::SetEnvironmentVariable('PATH', $UserPath, 'User')
-	
-	if($AddToCurrentSession.IsPresent){
-		$Env:Path += "$(if(-not $Env:Path.EndsWith(';')){';'})$PathToAdd"
-	}
-}
-
+log-subheader "installing dotnet latest LTS"
 $DotNetInstallUri = 'https://dot.net/v1/dotnet-install.ps1'
+$DownloadFilePath = Resolve-Path .\dotnet-install.ps1 
+Pop-LogAction "Downloading install script from $(emph $DotNetInstallUri) to $(emph $DownloadFilePath)"
+Start-BitsTransfer $DotNetInstallUri $DownloadFilePath 
+Pop-LogAction
 
-Write-Information "INFO: installing dotnet latest LTS "
-Start-BitsTransfer $DotNetInstallUri
-.\dotnet-install.ps1 # LTS i.e. v6
+Pop-LogAction "Running install script $(emph $DownloadFilePath)"
+.\dotnet-install.ps1 # LTS, latest
 $DotNetInstallPath = "$Env:LocalAppData\Microsoft\dotnet"
-[System.Environment]::SetEnvironmentVariable('DOTNET_ROOT', $DotNetInstallPath, 'User')
-$Env:DOTNET_ROOT =  $DotNetInstallPath
-AddToUserPath -PathToAdd $DotNetInstallPath -AddToCurrentSession
+Add-UserEnvVar 'DOTNET_ROOT' $DotNetInstallPath -AddToCurrentSession
+Add-UserPath -PathToAdd $DotNetInstallPath -AddToCurrentSession
 
-Write-Information "INFO: installing dotnet latest LTS - done"
+log-subheader "installing dotnet latest LTS - completed"

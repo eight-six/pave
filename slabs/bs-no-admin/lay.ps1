@@ -1,4 +1,6 @@
-#Requires -version 5.1
+#Requires -version 5.1 # Windows Powershell
+#Requires -modules pave-logger
+#Requires -modules pave-utils
 
 param (
     [string]$PwshVersion = "7.4.6",
@@ -21,32 +23,20 @@ if( $InstallWindowsTerminal.IsPresent){
 
 $ScriptsFolder = Join-Path $PSScriptRoot 'scripts'
 log-subheader 'pwsh'
-& "$ScriptsFolder\Install-Pwsh.ps1" -Version $PwshVersion
+
+$PwshResult = & "$ScriptsFolder\Install-Pwsh.ps1" -Version $PwshVersion
 
 log-subheader 'nuget'
 Push-LogAction "$(emph $ThisSlabName) installing nuget >= $NugetMinVersion" -IncrementActionLevel
-# Install-PackageProvider -Name NuGet -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force
+Install-PackageProvider -Name NuGet -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force
 Pop-LogAction
 
+log-subheader 'apps'
+$AppScriptsFilePath = Join-Path $ScriptsFolder ''
+$ExitCode  = & $PwshResult.Path -WorkingDirectory $PSScriptRoot -NoProfile -File $AppScriptsFilePath
 
-# {
-#     $VsBuildType = 'insider'
-#     $VsCodeExtensions = @(
-#         'GitHub.remotehub'
-#         'mechatroner.rainbow-csv'
-#         'ms-azuretools.vscode-bicep'
-#         'ms-dotnettools.vscode-dotnet-runtime'
-#         'ms-vscode.azure-repos'
-#         'ms-vscode.powershell'
-#         'ms-vscode.remote-repositories'
-#     )
-    
-#     & ".\Scripts\Install-DotNetLts.ps1"
-#     & ".\Scripts\Install-GitForWindows.ps1" 
-#     & ".\Scripts\Install-BsCode.ps1" -BuildType $VsBuildType #-UsePSGallery #-VsCodeExtensions $VsCodeExtensions
-#     & ".\Scripts\Install-AzureDataStudio.ps1"
-#     & ".\Scripts\Install-StorageExplorer.ps1"
-    
-# } | & "$Env:LocalAppData\powershell\pwsh" -WorkingDirectory $PSScriptRoot -noexit  -command -
+if($ExitCode -ne 0){
+    throw "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.Path) failed."
+}
 
 log-header "$ThisSlabName - complete"

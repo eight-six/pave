@@ -40,10 +40,9 @@
  $Env:LocalAppData\Programs\Git\
 
 .PARAMETER Version
-The version of git for windows to install. This will default to 2.24.0.2 (the latest at he time of publishing)
-of the value of $Env:BS_GIT_VER if not specifed. 
+The version of git for windows to install. This will default to 2.47.1.2 (the latest at he time of publishing)
 
-This must be specifed as Major.Minor.Build.Revision
+This must be specified as Major.Minor.Build.Revision
 
 Only 64-bit release versions are supported
 
@@ -58,7 +57,7 @@ as they are when published on github.
 .PARAMETER HideInstaller
 If specified no installer dialog will be displayed.
 
-When not specified the installer will stil complete automatically, but its progress will be displayed.
+When not specified the installer will still complete automatically, but its progress will be displayed.
 
 .EXAMPLE
 ./Install-GitForWindows 
@@ -66,9 +65,6 @@ When not specified the installer will stil complete automatically, but its progr
 .EXAMPLE
 ./Install-GitForWindows -Version 2.41.0.1
 
-.EXAMPLE
-$Env:BS_GIT_VER = 2.41.0.1
-./Install-GitForWindows
 
 
 #> 
@@ -76,7 +72,7 @@ $Env:BS_GIT_VER = 2.41.0.1
 
 param (
     [ValidatePattern('\d+\.\d+\.\d+\.\d+')]
-    [string]$Version = $Env:BS_GIT_VER ?? '2.42.0.2',
+    [string]$Version = 2.47.1.2,
     [string]$DownloadRoot = 'https://github.com/git-for-windows/git/releases/download',
     [switch]$HideInstaller
 )

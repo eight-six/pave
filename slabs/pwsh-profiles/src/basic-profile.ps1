@@ -31,17 +31,14 @@ $env:PWSH_PROFILE_PATH, $Env:PWSH_SCRIPTS_PATH, $Env:REPOS_PATH | % {
 
 $ScriptsToLoad = @()
 
-$DocumentsFolder = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::Personal)
-$HasRedirectedDocumentsFolder = $DocumentsFolder -ne (Join-Path $HOME 'powershell' 'modules')
+if($IsWindows){
+    $DocumentsFolder = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::Personal)
+    $HasRedirectedDocumentsFolder = $DocumentsFolder -ne (Join-Path $HOME 'Documents')
 
-if ($HasRedirectedDocumentsFolder) {
-    Write-Warning "Documents folder is redirected to $em$($DocumentsFolder)$em. Installing package management shims"
-
-    # change to use an env var $env:PWSH_INSTALL_PACMAN_SHIMS
-    if ($true) {
-        $ScriptsToLoad += '\Install-PacManShims.ps1'
+    if ($HasRedirectedDocumentsFolder) {
+        Write-Warning "Documents folder is redirected to $em$($DocumentsFolder)$em."
     }
-} 
+}
 
 $ScriptsToLoad  | % {
     $Path = Join-Path $Env:PWSH_SCRIPTS_PATH $_
