@@ -114,7 +114,7 @@ function do-it {
     $DownloadUri = "$DownloadRoot/$DownloadFolder/$DownloadName"
 
     Write-Information "INFO: Downloading $App $em$Version$em - $em$DownloadUri$em"
-    Start-BitsTransfer -Source $DownloadUri
+    Get-Downlaod -Source $DownloadUri
     Write-Information "INFO: Downloading $App $em$Version$em - $em$DownloadUri$em - done!"
 
     $DestinationRoot = "$env:LOCALAPPDATA\Programs\$App"

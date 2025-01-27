@@ -66,12 +66,13 @@ try {
     if ($InstallPath -eq (Split-Path -Parent ([Environment]::GetCommandLineArgs()[0]) )) {
         throw "cannot install another instance of pwsh in the same location as the running instance"
     }
-
+    
+    $Heading = 'pwsh'
+    Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
     if($Version -match '^7\.\d+$'){
         $Version = "$Version.0"
     }
 
-    $Banner = "pwsh"
 
     if($null -eq $MyInvocation.PSCommandPath){
         Write-LogHeader $Banner 
@@ -95,22 +96,7 @@ try {
     }
     else {
         Push-LogAction "downloading zip from $(emph $DownloadUri) to $(emph $InstallerFileName)"
-   
-        try {
-            Start-BitsTransfer $DownloadUri
-        }
-        catch [Runtime.InteropServices.COMException] {
-            Write-LogEntry "Download failed with $(emph Start-BitsTransfer) - error message: $(under $_.Exception.Message)"
-        
-            if ($_.Exception.Message -notmatch 'MUI Entry') {
-                throw $_
-            }
-            else {
-                Write-LogEntry "Start-BitsTransfer failed, trying Invoke-WebRequest"
-                iwr $DownloadUri -OutFile $InstallerFileName 
-            }
-        }
-    
+        Get-Download -Uri  -FilePath $InstallerFileName
         Pop-LogAction
     }
 
@@ -162,10 +148,9 @@ function prompt {
 
     Pop-LogAction
 
-    $Banner += ' - completed'
-
     if($null -eq $MyInvocation.PSCommandPath){
-        Write-LogHeader $Banner 
+        $Heading += ' - completed'
+        Write-LogHeader $Heading 
     }
 
     [PSCustomObject]@{

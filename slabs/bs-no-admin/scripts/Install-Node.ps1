@@ -81,6 +81,10 @@ if (!$IsWindows) {
     throw "This script is for windows only. See https://nodejs.org/en/download/package-manager for other options"
 }
 
+$Heading = 'node'
+Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
+Push-LogAction "installing $Heading $version" -IncrementActionLevel
+
 if (!$Version) {
     $Version = '20.18.0'
 }
@@ -97,11 +101,9 @@ $DownloadFolder = "v$Major.$Minor.$Build"
 $DownloadName = "node-v$Major.$Minor.$Build-win-x64.zip"
 $DownloadUri = "$DownloadRoot/$DownloadFolder/$DownloadName"
 
-Write-Information "INFO: Downloading node $em$Version$em - $em$DownloadUri$em"
-# Bits Transfer failing on client vdi - only for this download. works with iwr!
-# Start-BitsTransfer -Source $DownloadUri
-iwr $DownloadUri -OutFile $DownloadName
-Write-Information "INFO: Downloading node $em$Version$em - $em$DownloadUri$em - done!"
+Push-LogAction "Downloading node $(emph $Version) from $(emph $DownloadUri)" 
+Get-Download $DownloadUri $DownloadName
+Write-Information
 
 $DestinationRoot = "$env:LOCALAPPDATA\Programs\nodejs"
 $DestinationPath = "$DestinationRoot\node-v$Major.$Minor.$Build-win-x64"
@@ -111,28 +113,28 @@ if (!(Test-Path $DestinationRoot )) {
 }
 
 if (Test-Path $DestinationPath) {
-    Write-Information "INFO: Deleting existing node install at $em$DestinationPath$em"
+    Push-LogAction "Deleting existing node install at $(emph $DestinationPath)"
     rm -Force -Recurse $DestinationPath | Out-Null
-    Write-Information "INFO: Deleting existing node install at $em$DestinationPath$em - done."
+    Pop-LogAction
 }
 
-Write-Information "INFO: Installing node $em$Version$em"
+Push-LogAction "Installing node $(emph $Version) from $DownloadName to $(emph $DestinationRoot)"
 Expand-Archive $DownloadName -DestinationPath $DestinationRoot
-
-$Env:Path = "$DestinationPath;$env:Path"
 
 $Proxy = ([System.Net.WebRequest]::GetSystemWebProxy().GetProxy('https://www.npmjs.com/'))
 
 if ($null -ne $Proxy) {
+    Push-LogAction "configuring npm proxy $(under $Proxy.OriginalString)"
     npm config set proxy $Proxy.OriginalString
     npm config set https-proxy $Proxy.OriginalString
+    Pop-LogAction
 }
 
-$Path = $Env:Path
-$UserPaths = [Environment]::GetEnvironmentVariable('PATH', 'USER') -split ';'  | ? {$_ -ne $DestinationPath}
-$UserPath = "$DestinationPath;$($UserPaths -join ';')"
+Add-UserPath $DestinationPath -AtStart -AddToCurrentSession
 
-[Environment]::SetEnvironmentVariable('PATH', $UserPath , 'USER')
-[Environment]::SetEnvironmentVariable('PATH', $Path , 'PROCESS')
+Pop-LogAction
 
-Write-Information "INFO: Installing node $em$Version$em - done!"
+if($null -eq $MyInvocation.PSCommandPath){
+    $Heading += ' - completed'
+    Write-LogHeader $Heading 
+}

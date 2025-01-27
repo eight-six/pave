@@ -20,7 +20,7 @@ $LogOptions = [ordered]@{
     maxLineLength         = 256
     padChar               = ""
     subheaderChar         = '-'
-    timestamp             = $false
+    timestamp             = $true
 }
 
 $ESC = [char]27
@@ -217,41 +217,26 @@ function under {
     
     "$($UnderlineStart)$Text$($UnderlineEnd)"
 }
-
-# function log {
-#     param(
-#         [Parameter(Mandatory = $true, ParameterSetName = 'Default')]
-#         [Parameter(Mandatory = $true, ParameterSetName = 'StartAction')]
-#         [Parameter(Mandatory = $true, ParameterSetName = 'CompleteAction')]
-#         [string]$Text,
-#         [Parameter(Mandatory = $true, ParameterSetName = 'StartAction')]
-#         [switch]$StartAction,
-#         [Parameter(Mandatory = $true, ParameterSetName = 'CompleteAction')]
-#         [switch]$CompleteAction,
-#         [int]$Level = 0
-#     )
-
-#     $LevelText = $LogOptions.LevelChar * $Level
-#     $Tokens =  $LevelText , $LogOptions.InfoPrefix, $Text
-
-#     if ($StartAction.IsPresent) {
-#         $Tokens += $LogOptions.ActionStartSuffix
-#     }
-
-#     if ($CompleteAction.IsPresent) {
-#         $Tokens += $LogOptions.ActionCompletedSuffix
-#     }
-    
-#     $Tokens -join $LogOptions.PadChar
-# }
-
 function Write-LogHeader {
     param(
+        [Parameter(ParameterSetName='default', Position = 0)]
+        [Parameter(ParameterSetName='SpecificChar', Position = 0)]
         [string]$Text,
-        [string]$HeaderChar = $LogOptions.HeaderChar
+        [Parameter(ParameterSetName='default')]
+        [switch]$Subheader,
+        [Parameter(Mandatory,ParameterSetName='SpecificChar')]
+        [string]$HeaderChar 
     )
 
     $WindowSize = [Math]::Min($Host.UI.RawUI.WindowSize.Width, $Script:LogOptions.maxLineLength) - 3
+
+    if([string]::IsNullOrWhiteSpace($HeaderChar)){
+        $HeaderChar = if ($Subheader.IsPresent){
+            $Script:LogOptions.subHeaderChar
+        } else {
+            $Script:LogOptions.headerChar
+        }
+    }
 
     if ($Script:LogOptions.timestamp) {
         $WindowSize -= 21
@@ -272,7 +257,7 @@ function Write-LogSubheader {
         [string]$Text
     )
 
-    Write-LogHeader $text -HeaderChar $LogOptions.SubheaderChar
+    Write-LogHeader -Text $Text -Subheader
 }
 
 function Get-LogOptions {

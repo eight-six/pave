@@ -1,4 +1,5 @@
 #Requires -version 5.1 # Windows Powershell
+#Requires -Modules pave-logger
 
 using namespace System
 
@@ -71,6 +72,31 @@ function Add-UserPath {
 
         if ($AddToCurrentSession.IsPresent) {
             Update-PathEnvVar
+        }
+    }
+}
+
+function Get-Download {
+    param (
+        [string]$Uri,
+        [string]$FilePath,
+        [switch]$NoFallback
+    )
+
+
+    try {
+        Start-BitsTransfer $Uri $FilePath
+    }
+    catch [Runtime.InteropServices.COMException] {
+        Write-LogEntry "Download failed with $(emph 'Start-BitsTransfer') - error message: $(under $_.Exception.Message)"
+    
+        if ($_.Exception.Message -notmatch 'MUI Entry') {
+            throw $_
+        }
+        else {
+            Write-LogEntry "Start-BitsTransfer failed, trying $(emph Invoke-WebRequest)"
+            iwr $Uri -OutFile $FilePath 
+            Write-LogEntry "$(emph Invoke-WebRequest) succeeded  "
         }
     }
 }

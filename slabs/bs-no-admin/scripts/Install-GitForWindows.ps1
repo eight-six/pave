@@ -84,6 +84,15 @@ if (!$IsWindows) {
     throw "This script is for windows only. See https://git-scm.com/download/$($IsMacOS ? 'mac' : 'linux') "
 }
 
+$Heading = 'git'
+Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
+Push-LogAction "installing $Heading" -IncrementActionLevel
+
+if($null -eq $MyInvocation.PSCommandPath){
+    $Heading += ' - completed'
+    Write-LogHeader $Heading 
+}
+
 $VersionParts = $Version -split '\.'
 $Major = $VersionParts[0]
 $Minor = $VersionParts[1]
@@ -95,9 +104,20 @@ $DownloadName = "Git-$Major.$Minor.$Build$($Revision -eq 1 ? '' : ".$Revision")-
 $DownloadUri = "$DownloadRoot/$DownloadFolder/$DownloadName"
 
 Push-LogAction "Downloading git $(emph $Version) - $(emph $DownloadUri)"
-Start-BitsTransfer -Source $DownloadUri
+Get-Download -Source $DownloadUri
 Pop-LogAction
 
 Push-LogAction  "Installing git $(emph $Version)"
 Start-Process $DownloadName -Wait -ArgumentList ($HideInstaller ? '/VERYSILENT' : '/SILENT')
 Pop-LogAction
+
+$Heading = 'pwsh'
+Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
+Push-LogAction "installing $Heading" -IncrementActionLevel
+
+Pop-LogAction
+
+if($null -eq $MyInvocation.PSCommandPath){
+    $Heading += ' - completed'
+    Write-LogHeader $Heading 
+}
