@@ -96,7 +96,7 @@ try {
     }
     else {
         Push-LogAction "downloading zip from $(emph $DownloadUri) to $(emph $InstallerFileName)"
-        Get-Download -Uri  -FilePath $InstallerFileName
+        Get-Download -Uri $DownloadUri -FilePath $InstallerFileName
         Pop-LogAction
     }
 

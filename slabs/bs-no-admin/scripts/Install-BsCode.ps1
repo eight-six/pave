@@ -84,7 +84,7 @@ if($UsePSGallery.IsPresent){
     $VsCodeUri = "https://update.code.visualstudio.com/latest/win32-x64-user/$BuildType"
     Write-Verbose "$VsCodeUri"
     $VsSetupExe = ".\vscode-win32-x64-user-$BuildType-setup.exe"
-    Get-Download -Source $VsCodeUri -Destination $VsSetupExe
+    Get-Download $VsCodeUri $VsSetupExe
     Start-Process $VsSetupExe -Wait -ArgumentList "/silent /MERGETASKS=!runcode"    
 }
 

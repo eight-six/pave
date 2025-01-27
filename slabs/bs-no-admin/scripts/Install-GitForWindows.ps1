@@ -102,9 +102,10 @@ $Revision = $VersionParts[3]
 $DownloadFolder = "v$Major.$Minor.$Build.windows.$Revision"
 $DownloadName = "Git-$Major.$Minor.$Build$($Revision -eq 1 ? '' : ".$Revision")-64-bit.exe"
 $DownloadUri = "$DownloadRoot/$DownloadFolder/$DownloadName"
+$InstallFilePath = Join-Path $PWD.Path $DownloadName
 
 Push-LogAction "Downloading git $(emph $Version) - $(emph $DownloadUri)"
-Get-Download -Source $DownloadUri
+Get-Download $DownloadUri $InstallFilePath 
 Pop-LogAction
 
 Push-LogAction  "Installing git $(emph $Version)"
