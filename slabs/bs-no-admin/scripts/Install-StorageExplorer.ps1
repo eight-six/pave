@@ -29,4 +29,4 @@ $DownloadUri = (iwr $GoMsDownloadUri -Method Head).BaseResponse.RequestMessage.R
 Start-BitsTransfer $DownloadUri $Setup
 Start-Process $Setup -Wait -ArgumentList '/CURRENTUSER', "/$($HideInstaller.IsPresent ? 'VERYSILENT' : 'SILENT')"
 
-Push-LogAction
+Pop-LogAction
