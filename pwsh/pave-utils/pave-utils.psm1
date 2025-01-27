@@ -88,7 +88,7 @@ function Get-Download {
         Start-BitsTransfer $Uri $FilePath
     }
     catch [Runtime.InteropServices.COMException] {
-        Write-LogEntry "Download failed with $(emph 'Start-BitsTransfer') - error message: $(under $_.Exception.Message)"
+        Write-LogEntry "Download of $(emph $Uri) failed with $(emph 'Start-BitsTransfer') - error message: $(under $_.Exception.Message)"
     
         if ($_.Exception.Message -notmatch 'MUI Entry') {
             throw $_
@@ -96,7 +96,7 @@ function Get-Download {
         else {
             Write-LogEntry "Start-BitsTransfer failed, trying $(emph Invoke-WebRequest)"
             iwr $Uri -OutFile $FilePath 
-            Write-LogEntry "$(emph Invoke-WebRequest) succeeded  "
+            Write-LogEntry "Download of $(emph $Uri) with $(emph Invoke-WebRequest) succeeded."
         }
     }
 }

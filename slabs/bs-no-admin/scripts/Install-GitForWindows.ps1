@@ -112,9 +112,7 @@ Push-LogAction  "Installing git $(emph $Version)"
 Start-Process $DownloadName -Wait -ArgumentList ($HideInstaller ? '/VERYSILENT' : '/SILENT')
 Pop-LogAction
 
-$Heading = 'pwsh'
-Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
-Push-LogAction "installing $Heading" -IncrementActionLevel
+
 
 Pop-LogAction
 

@@ -9,7 +9,7 @@ $PSNativeCommandUseErrorActionPreference = $true
 
 $Heading =  "AzureDataStudio"
 Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
-Push-LogAction 'installing Azure Data Studio ' -IncrementActionLevel
+Push-LogAction 'installing Azure Data Studio' -IncrementActionLevel
 
 $Setup = Join-Path $pwd.path 'InstallAzureDataStudio.exe'
 $GoMsDownloadUri = 'https://go.microsoft.com/fwlink/?linkid=2251836'

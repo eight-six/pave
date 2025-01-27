@@ -4,7 +4,7 @@
 
 $ScriptsFolder = $PSScriptRoot 
 $VsBuildType = 'insider'
-$Heading = 'pwsh'
+$Heading = 'default apps'
 Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
 Push-LogAction 'installing default apps' -IncrementActionLevel
 & "$ScriptsFolder\Install-DotNetLts.ps1"

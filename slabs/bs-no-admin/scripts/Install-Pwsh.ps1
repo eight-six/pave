@@ -69,15 +69,9 @@ try {
     
     $Heading = 'pwsh'
     Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
+
     if($Version -match '^7\.\d+$'){
         $Version = "$Version.0"
-    }
-
-
-    if($null -eq $MyInvocation.PSCommandPath){
-        Write-LogHeader $Banner 
-    } else {
-        Write-LogSubHeader $Banner
     }
 
     Push-LogAction "installing $(bold "pwsh v$Version")" -IncrementActionLevel

@@ -10,8 +10,8 @@ $Script:LogTarget = 'Information'
 
 
 $LogOptions = [ordered]@{
-    actionCompletedSuffix = '✓'
-    actionStartSuffix     = '…'
+    actionCompletedSuffix = [char]0x2713
+    actionStartSuffix     = [char]0x2026
     bold                  = '**'
     emph                  = '*'
     headerChar            = '='
@@ -191,7 +191,7 @@ function Pop-LogAction {
     }
 }
 
-function emph {
+function Format-Emhpasis {
     param(
         [Parameter(Mandatory = $true)]
         [string]$Text
@@ -200,7 +200,7 @@ function emph {
     "$($EmphStart)$Text$($EmphEnd)"
 }
 
-function bold {
+function Format-Bold {
     param(
         [Parameter(Mandatory = $true)]
         [string]$Text
@@ -209,7 +209,7 @@ function bold {
     "$($BoldStart)$Text$($BoldEnd)"
 }
 
-function under {
+function Format-Underline {
     param(
         [Parameter(Mandatory = $true)]
         [string]$Text
@@ -269,7 +269,7 @@ if (Test-Path "$HOME/.pave-logger") {
     $LogOptions = gc -raw "$HOME/.pave-logger" -Encoding 'utf8' | ConvertFrom-Yaml -Ordered
 }
 else {
-    $LogOptions | ConvertTo-Yaml | Out-File "$HOME/.pave-logger" -Encoding 'utf8'
+    $LogOptions | ConvertTo-Json| Out-File "$HOME/.pave-logger" -Encoding 'utf8'
 }
 
 Set-Alias log Write-LogEntry
@@ -277,3 +277,10 @@ set-alias logh Write-LogHeader
 set-alias logsh Write-LogSubheader
 set-alias pusha Push-LogAction
 set-alias popa Pop-LogAction
+set-alias em Format-Emhpasis
+set-alias emph Format-Emhpasis
+set-alias b Format-Bold
+set-alias bold Format-Bold
+set-alias u Format-Underline
+set-alias under Format-Underline
+

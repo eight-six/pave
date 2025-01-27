@@ -103,7 +103,7 @@ $DownloadUri = "$DownloadRoot/$DownloadFolder/$DownloadName"
 
 Push-LogAction "Downloading node $(emph $Version) from $(emph $DownloadUri)" 
 Get-Download $DownloadUri $DownloadName
-Write-Information
+Pop-LogAction
 
 $DestinationRoot = "$env:LOCALAPPDATA\Programs\nodejs"
 $DestinationPath = "$DestinationRoot\node-v$Major.$Minor.$Build-win-x64"
@@ -124,11 +124,12 @@ Expand-Archive $DownloadName -DestinationPath $DestinationRoot
 $Proxy = ([System.Net.WebRequest]::GetSystemWebProxy().GetProxy('https://www.npmjs.com/'))
 
 if ($null -ne $Proxy) {
-    Push-LogAction "configuring npm proxy $(under $Proxy.OriginalString)"
+    Push-LogAction "configuring npm proxy $(under $Proxy.OriginalString)" -IncrementActionLevel
     npm config set proxy $Proxy.OriginalString
     npm config set https-proxy $Proxy.OriginalString
     Pop-LogAction
 }
+Pop-LogAction
 
 Add-UserPath $DestinationPath -AtStart -AddToCurrentSession
 
