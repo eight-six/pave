@@ -72,7 +72,7 @@ When not specified the installer will still complete automatically, but its prog
 
 param (
     [ValidatePattern('\d+\.\d+\.\d+\.\d+')]
-    [string]$Version = 2.47.1.2,
+    [string]$Version = '2.47.1.2',
     [string]$DownloadRoot = 'https://github.com/git-for-windows/git/releases/download',
     [switch]$HideInstaller
 )
@@ -84,8 +84,6 @@ if (!$IsWindows) {
     throw "This script is for windows only. See https://git-scm.com/download/$($IsMacOS ? 'mac' : 'linux') "
 }
 
-$em = if ($null -ne $Env:PS_EM) { $Env:PS_EM } else { $Env:PS_EM = '*', $Env:PS_EM }
-
 $VersionParts = $Version -split '\.'
 $Major = $VersionParts[0]
 $Minor = $VersionParts[1]
@@ -96,10 +94,10 @@ $DownloadFolder = "v$Major.$Minor.$Build.windows.$Revision"
 $DownloadName = "Git-$Major.$Minor.$Build$($Revision -eq 1 ? '' : ".$Revision")-64-bit.exe"
 $DownloadUri = "$DownloadRoot/$DownloadFolder/$DownloadName"
 
-Write-Information "INFO: Downloading git $em$Version$em - $em$DownloadUri$em"
+Push-LogAction "Downloading git $(emph $Version) - $(emph $DownloadUri)"
 Start-BitsTransfer -Source $DownloadUri
-Write-Information "INFO: Downloading git $em$Version$em - $em$DownloadUri$em - done!"
+Pop-LogAction
 
-Write-Information "INFO: Installing git $em$Version$em"
+Push-LogAction  "Installing git $(emph $Version)"
 Start-Process $DownloadName -Wait -ArgumentList ($HideInstaller ? '/VERYSILENT' : '/SILENT')
-Write-Information "INFO: Installing git $em$Version$em - done!"
+Pop-LogAction

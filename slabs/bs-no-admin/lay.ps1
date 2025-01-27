@@ -3,7 +3,7 @@
 #Requires -modules pave-utils
 
 param (
-    [string]$PwshVersion = "7.4.6",
+    [string]$PwshVersion = "7.5.0",
     [string]$NugetMinVersion = "2.8.5.201",
     [switch]$InstallWindowsTerminal,
     [switch]$SkipDownload
@@ -11,33 +11,40 @@ param (
 
 $ErrorActionPreference = 'Stop'
 
-$ThisSlabName = Split-Path $PSScriptRoot -Leaf
-$SlabsRoot = (Resolve-Path(Join-Path $PSScriptRoot '..')).Path
-. "$SlabsRoot/slab-utils/slab-utils.ps1"
+try {
+    
+    $ThisSlabName = Split-Path $PSScriptRoot -Leaf
+    $SlabsRoot = (Resolve-Path(Join-Path $PSScriptRoot '..')).Path
+    . "$SlabsRoot/slab-utils/slab-utils.ps1"
 
-log-header $ThisSlabName
+    Write-LogHeader $ThisSlabName
 
-if( $InstallWindowsTerminal.IsPresent){
-    log-subheader 'Windows Terminal'
-    .\Install-WindowsTerminal.ps1
+    if ( $InstallWindowsTerminal.IsPresent) {
+        Write-LogSubheader 'Windows Terminal'
+        .\Install-WindowsTerminal.ps1
+    }
+
+    # install pwsh
+    $ScriptsFolder = Join-Path $PSScriptRoot 'scripts'
+    $PwshResult = & "$ScriptsFolder\Install-Pwsh.ps1" -Version $PwshVersion -SkipDownload:$SkipDownload 
+
+    # install nuget
+    Push-LogAction "$(emph $ThisSlabName) installing nuget >= $NugetMinVersion" -IncrementActionLevel
+    $PackageProvider = Install-PackageProvider -Name NuGet -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force 
+    Write-LogEntry "Package provider installed: $($PackageProvider | ConvertTo-Json -Compress )"
+    Pop-LogAction
+
+    # instal default apps
+    $AppScriptsFilePath = Join-Path $ScriptsFolder 'Install-Apps.ps1'
+    $ExitCode = & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $AppScriptsFilePath
+
+    if ($ExitCode -ne 0) {
+        throw "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.PwshPath) failed."
+    }
+}
+catch {
+    Clear-LogAction
+    throw
 }
 
-$ScriptsFolder = Join-Path $PSScriptRoot 'scripts'
-log-subheader 'pwsh'
-
-$PwshResult = & "$ScriptsFolder\Install-Pwsh.ps1" -Version $PwshVersion -SkipDownload $SkipDownload
-
-log-subheader 'nuget'
-Push-LogAction "$(emph $ThisSlabName) installing nuget >= $NugetMinVersion" -IncrementActionLevel
-Install-PackageProvider -Name NuGet -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force
-Pop-LogAction
-
-log-subheader 'default apps'
-$AppScriptsFilePath = Join-Path $ScriptsFolder ''
-$ExitCode = & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $AppScriptsFilePath
-
-if($ExitCode -ne 0){
-    throw "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.PwshPath) failed."
-}
-
-log-header "$ThisSlabName - complete"
+Write-LogHeader "$ThisSlabName - complete"

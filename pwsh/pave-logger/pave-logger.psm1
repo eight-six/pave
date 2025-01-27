@@ -1,4 +1,5 @@
 #Requires -version 5.1 # Windows Powershell
+#Requires -Modules powershell-yaml
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
@@ -16,6 +17,7 @@ $LogOptions = [ordered]@{
     headerChar            = '='
     infoPrefix            = ""
     levelChar             = '+'
+    maxLineLength         = 256
     padChar               = ""
     subheaderChar         = '-'
     timestamp             = $false
@@ -170,13 +172,14 @@ function Pop-LogAction {
        
     )
 
-    Write-Verbose "Stack count: $($Script:Stack.Count)" -verbose
+    Write-Verbose "Stack count: $($Script:Stack.Count)" #-verbose
+    
     if ($Script:Stack.Count -gt 0) {
         # if ($null -ne $Script:Stack.Peek()) {
         $Item = $Script:Stack.Pop()
         Write-verbose "item $($Item | ConvertTo-Json -Compress)" #-Verbose
             
-        $Tokens = $Item.Text, "$($AnsiColor.Foreground.Green)$($AnsiColor.Reset)$DefaultStyle"
+        $Tokens = $Item.Text, "$($AnsiColor.Foreground.Green)$($Script:LogOptions.actionCompletedSuffix)$($AnsiColor.Reset)$DefaultStyle"
             
         Write-LogEntry ($Tokens -join ' ') 
             
@@ -278,12 +281,14 @@ function Get-LogOptions {
 
 if (Test-Path "$HOME/.pave-logger") {
     # get from ~/.pave-logger
-    $LogOptions = gc -raw "$HOME/.pave-logger" | ConvertFrom-Yaml -Ordered
+    $LogOptions = gc -raw "$HOME/.pave-logger" -Encoding 'utf8' | ConvertFrom-Yaml -Ordered
 }
 else {
-    $LogOptions | ConvertTo-Yaml | Out-File "$HOME/.pave-logger"
+    $LogOptions | ConvertTo-Yaml | Out-File "$HOME/.pave-logger" -Encoding 'utf8'
 }
 
 Set-Alias log Write-LogEntry
-set-alias log-header Write-LogHeader
-set-alias log-subheader Write-LogSubheader
+set-alias logh Write-LogHeader
+set-alias logsh Write-LogSubheader
+set-alias pusha Push-LogAction
+set-alias popa Pop-LogAction

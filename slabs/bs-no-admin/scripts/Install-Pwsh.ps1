@@ -49,8 +49,9 @@
 #Requires -modules pave-logger
 #Requires -modules pave-utils
 
+[CmdletBinding()]
 param (
-    [ValidatePattern('7\.\d+\.\d+')]
+    [ValidatePattern('^7\.\d+(\.\d+){0,1}$')]
     [string]$Version = '7.5.0',
     [string]$InstallPath = "$env:LOCALAPPDATA\powershell\$Version",
     [string]$DownloadRoot = 'https://github.com/PowerShell/PowerShell/releases/download',
@@ -66,7 +67,19 @@ try {
         throw "cannot install another instance of pwsh in the same location as the running instance"
     }
 
-    Push-LogAction "installing $(bold 'pwsh') v$Version" -IncrementActionLevel
+    if($Version -match '^7\.\d+$'){
+        $Version = "$Version.0"
+    }
+
+    $Banner = "pwsh"
+
+    if($null -eq $MyInvocation.PSCommandPath){
+        Write-LogHeader $Banner 
+    } else {
+        Write-LogSubHeader $Banner
+    }
+
+    Push-LogAction "installing $(bold "pwsh v$Version")" -IncrementActionLevel
 
     $InstallerFileName = "PowerShell-$Version-win-x64.zip"
     $DownloadUri = "$DownloadRoot/v$Version/$InstallerFileName"
@@ -81,7 +94,7 @@ try {
         Write-LogEntry "SkipDownload was specified. Required install must exist at $(emph ".\$InstallerFileName")"
     }
     else {
-        Push-LogAction "downloading zip from $(emph $DownloadUri) to $InstallerFileName"
+        Push-LogAction "downloading zip from $(emph $DownloadUri) to $(emph $InstallerFileName)"
    
         try {
             Start-BitsTransfer $DownloadUri
@@ -104,6 +117,7 @@ try {
     # expand installer
     Push-LogAction "expanding zip from  $(emph $InstallerFileName) to $(emph $InstallPath)"
     $InstallerFilePath = Join-Path $Pwd.Path $InstallerFileName
+
     if (!(Test-Path $InstallerFilePath)) {
         throw "Installer not found at $(emph $InstallerFilePath)"
     }
@@ -147,6 +161,12 @@ function prompt {
     } |  & "$InstallPath\pwsh" -NoProfile -command - #note the sneaky minus(-) = get command from stdin
 
     Pop-LogAction
+
+    $Banner += ' - completed'
+
+    if($null -eq $MyInvocation.PSCommandPath){
+        Write-LogHeader $Banner 
+    }
 
     [PSCustomObject]@{
         PwshPath = "$InstallPath\pwsh"
