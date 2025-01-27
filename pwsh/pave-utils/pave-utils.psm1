@@ -18,7 +18,7 @@ function Add-UserEnvVar {
     [System.Environment]::SetEnvironmentVariable($Name, $Value, [EnvironmentVariableTarget]::User)
 
     if ($AddToCurrentSession.IsPresent) {
-        New-Item -Path env: -Name $name -Value $Name  | Out-Null 
+        Set-Item -Path "env:$name" -Value $Value  | Out-Null 
     }
 }
 
