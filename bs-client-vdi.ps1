@@ -27,7 +27,7 @@ Expand-Archive './pave-full-v99.99.99/pave-module-v99.99.99.zip' $ModulePath
 rm $ModuleZipFileName 
 
 if(!(Get-Module -ListAvailable 'powershell-yaml')){
-    Install-Module powershell-yaml -Force
+    Install-Module powershell-yaml -Scope 'CurrentUser' -Force
 }
 
 Import-Module pave-logger
