@@ -2,9 +2,9 @@
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = 'true'
 
-$Env:PAVE_PWSH_VERSION = '7.4.6'
+$Env:PAVE_PWSH_VERSION = '7.5.0'
 
-# seperate multiple versions with a | - versions are installed left to right, the last one will be the default.
+# separate multiple versions with a | - versions are installed left to right, the last one will be the default.
 $Env:PAVE_PY_VERSION = '3.12|3.11'
 
 if($null -eq $Env:PAVE_USER_NAME){
@@ -17,19 +17,24 @@ if($null -eq $Env:PAVE_USER_EMAIL ){
 
 Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser'
 
-$ModulePath = "$($env:PSModulePath -split ';' | select -First 1)/pave"
-$ModuleZipFileName = 'pave-module.zip'
 cd "$HOME\downloads" 
-Start-BitsTransfer "https://eightsixpaveprodstg.blob.core.windows.net/public/latest/$ModuleZipFileName" 
-Expand-Archive $ModuleZipFileName $ModulePath
+$ModulePath = "$($env:PSModulePath -split ';' | select -First 1)"
+$ModuleZipFileName = 'pave-full-v99.99.99.zip'
+Start-BitsTransfer "https://eightsixpaveprodstg.blob.core.windows.net/public/latest-test/$ModuleZipFileName" 
+Expand-Archive './pave-full-v99.99.99/pave-logger-module-v99.99.99.zip' $ModulePath
+Expand-Archive './pave-full-v99.99.99/pave-utils-module-v99.99.99.zip' $ModulePath
+Expand-Archive './pave-full-v99.99.99/pave-module-v99.99.99.zip' $ModulePath
 rm $ModuleZipFileName 
-Import-Module pave
-Install-Slab slab-utils
 
-# this is a wee hack as .net install doesn't add its install path to the path for the current session
-# when the installer for Azure Storage Explorer doesn't find dotnet it attempts to install dotnet to 
-# program files which requires elevation, which we don't have.
-$Env:Path = "$Env:LocalAppData\Microsoft\DotNet;" + $Env:Path
+if(!(Get-Module -ListAvailable 'powershell-yaml')){
+    Install-Module powershell-yaml -Force
+}
+
+Import-Module pave-logger
+Import-Module pave-utils
+Import-Module pave
+
+Install-Slab slab-utils
 Install-Slab bs-no-admin
 Install-Slab reg-tweaks
 lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION 
