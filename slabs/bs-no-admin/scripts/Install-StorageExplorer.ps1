@@ -9,7 +9,7 @@ Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
 Push-LogAction "installing $Heading" -IncrementActionLevel
 
 # this needs to be moved to Write-LogEntry
-$Cont = '>> '
+$Cont =  ('>' * ((Get-ActionLevel) + 1)) + ' '
 $PadChars = if((Get-LogOptions).timestamp){21} else {0}
 $Pad = (' ' * $PadChars) + $Cont 
 
@@ -18,7 +18,7 @@ StorageExplorer installer will fail to find dotnet if it is not installed in Pro
 $($Pad)attempts to install it - which needs elevation. If dotnet is installed, or you plan to install it, 
 $($Pad)cancel the UAC prompt and click OK the warning dialog which is displayed subsequently.
 $($Pad)Alternatively, if you have local admin privs, you can accept the UAC prompt and dotnet will be installed in
-$($Pad)Program Files."
+$($Pad)Program Files.
 "@
 
 Write-LogEntry $UacWarning
