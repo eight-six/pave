@@ -10,6 +10,7 @@ param (
 )
 
 $ErrorActionPreference = 'Stop'
+$InformationPreference = 'Continue'
 
 try {
     
@@ -36,10 +37,12 @@ try {
 
     # instal default apps
     $AppScriptsFilePath = Join-Path $ScriptsFolder 'Install-Apps.ps1'
-    $ExitCode = & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $AppScriptsFilePath
+    & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $AppScriptsFilePath
 
-    if ($ExitCode -ne 0) {
-        throw "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.PwshPath) failed."
+    if ($LASTEXITCODE -ne 0) {
+        $ErrorMessage = "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.PwshPath) failed with exit code $(em $LASTEXITCODE)."
+        Write-LogEntry $ErrorMessage -IgnoreActionLevel
+        throw $ErrorMessage
     }
 }
 catch {

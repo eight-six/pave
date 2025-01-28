@@ -2,6 +2,9 @@
 #Requires -modules pave-logger
 #Requires -modules pave-utils
 
+$ErrorActionPreference = 'Stop'
+$InformationPreference = 'Continue'
+
 $ScriptsFolder = $PSScriptRoot 
 $VsBuildType = 'insider'
 $Heading = 'default apps'
