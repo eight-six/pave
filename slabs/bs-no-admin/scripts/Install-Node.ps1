@@ -120,6 +120,9 @@ if (Test-Path $DestinationPath) {
 
 Push-LogAction "Installing node $(emph $Version) from $DownloadName to $(emph $DestinationRoot)"
 Expand-Archive $DownloadName -DestinationPath $DestinationRoot
+Add-UserPath $DestinationPath -AtStart -AddToCurrentSession
+$Env:Path = "$DestinationPath;$Env:Path" # shouldn't be necessary with -AddToCurrentSession on previous line
+Pop-LogAction
 
 $Proxy = ([System.Net.WebRequest]::GetSystemWebProxy().GetProxy('https://www.npmjs.com/'))
 
@@ -129,9 +132,7 @@ if ($null -ne $Proxy) {
     npm config set https-proxy $Proxy.OriginalString
     Pop-LogAction
 }
-Pop-LogAction
 
-Add-UserPath $DestinationPath -AtStart -AddToCurrentSession
 
 Pop-LogAction
 
