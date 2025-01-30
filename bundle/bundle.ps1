@@ -38,6 +38,7 @@ $Index | ConvertTo-Json | Out-File "$BuildDir/slabs/~index"
 
     Update-ModuleManifest -Path "$ModuleSourcePath/$ModuleName/$ModuleName.psd1" -ModuleVersion $ModuleVersion 
     Copy-Item "$ModuleSourcePath/$ModuleName/" "$ModuleBuildPath/$ModuleName/" -recurse
+    ipmo "$ModuleBuildPath/$ModuleName/" -Force -verbose
     Compress-Archive -path "$ModuleBuildPath/$ModuleName/"  -Destination "$BuildDir/$ModuleFilePath" -Force -verbose
 }
 
