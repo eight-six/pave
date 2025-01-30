@@ -105,5 +105,5 @@ Invoke-ScriptWithPwsh $InstallNodeFilePath
 $ConfigFilePath = Join-Path $ScriptsPath 'Set-ConfigConfig.ps1'
 Invoke-ScriptWithPwsh $ConfigFilePath 
 $ConfigFilePath = Join-Path $ScriptsPath 'Set-ConfigPrivate.ps1'
-Invoke-ScriptWithPwsh$ConfigFilePath 
+Invoke-ScriptWithPwsh $ConfigFilePath 
 
