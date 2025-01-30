@@ -53,7 +53,8 @@ function apply{
     param(
         [string[]]$Configs,
         [string]$Comment,
-        [string]$Comment2
+        [string]$Comment2,
+        [switch]$DotSource 
     )
 
     Push-LogAction $Comment
@@ -65,7 +66,11 @@ function apply{
         if($Test.IsPresent){
             Write-LogEntry "Test mode - file exists: $(Test-Path $Config )"
         } else {
-            & $Config
+            if($DotSource.IsPresent){
+                . $Config
+            } else {
+                & $Config
+            }
         }
     
         Pop-LogAction
@@ -77,7 +82,7 @@ function apply{
 }
 
 apply $Configs "applying configs" "calling"
-apply $DotSourceConfigs "applying dot source configs" "dot sourcing"
+apply $DotSourceConfigs "applying dot source configs" "dot sourcing" -DotSource
 
 Pop-LogAction
 Write-LogHeader "$Header - completed"
