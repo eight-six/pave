@@ -74,6 +74,7 @@ Install-Slab slab-utils
 Install-Slab bs-no-admin
 Install-Slab reg-tweaks
 lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION
+Update-PathEnvVar 
 
 function Invoke-ScriptWithPwsh {
     param(
