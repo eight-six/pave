@@ -17,9 +17,9 @@ if ($null -eq $Env:PAVE_USER_EMAIL ) {
 Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser'
 
 function prompt {        
-    $Dollar = $IsAdmin ? '#' : '$'
-    $Color = $IsAdmin ? $PSStyle.Formatting.Error : $PSStyle.Formatting.White
+    $Dollar = '$'
     $Options = Get-PSReadLineOption
+    $Color = $Options.DefaultTokenColor
 
     $Line1 = @(
         $Options.CommentColor
@@ -74,12 +74,6 @@ Install-Slab slab-utils
 Install-Slab bs-no-admin
 Install-Slab reg-tweaks
 lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION
-
-$Env:PAVE_PY_VERSION -split '\|' | % {
-    winget install "Python.Python.$_" --accept-source-agreements 
-    $PyVersion = $_ -replace '\.', ''
-    $Env:Path = "$Env:LOCALAPPDATA\Programs\Python\Python$PyVersion;$Env:LOCALAPPDATA\Programs\Python\Python$PyVersion\Scripts;" + $Env:Path
-}
 
 function Invoke-ScriptWithPwsh {
     param(
