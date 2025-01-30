@@ -65,7 +65,7 @@ function apply{
         if($Test.IsPresent){
             Write-LogEntry "Test mode - file exists: $(Test-Path $Config )"
         } else {
-            #& $Config
+            & $Config
         }
     
         Pop-LogAction
