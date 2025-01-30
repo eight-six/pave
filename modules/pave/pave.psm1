@@ -1,4 +1,6 @@
 using namespace System.Management.Automation
+#Requires -Modules pave-logger
+#Requires -Modules pave-utils
 
 $ErrorActionPreference = 'Stop'
 
