@@ -1,7 +1,12 @@
 #Requires -PSEdition Core
+#Requires -Modules pave-logger
 
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $true
+
+$Heading = 'dotnet'
+Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
+Push-LogAction "installing dotnet latest lts" -IncrementActionLevel
 
 $Heading = 'dotnet'
 Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
