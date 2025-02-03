@@ -2,7 +2,7 @@
 <#
 
 Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser'
-iwr https://github.com/eight-six/pave/blob/tidy/bs-client-vdi.ps1 ~\downloads\bs-client-vdi.ps1
+iwr https://github.com/eight-six/pave/blob/tidy/bs-client-vdi.ps1 -OutFile ~\downloads\bs-client-vdi.ps1
 Unblock-File ~\downloads\bs-client-vdi.ps1
 . ~\downloads\bs-client-vdi.ps1
 
