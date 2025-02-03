@@ -119,7 +119,9 @@ function Update-PathEnvVar {
     Write-verbose "machine path: $MachinePath"
     $UserPath = [System.Environment]::GetEnvironmentVariable($Script:ENV_VAR_PATH, [EnvironmentVariableTarget]::User)
     Write-verbose "user path: $UserPath"
-    $EffectivePath = $MachinePath + $UserPath
+
+    $Sep = if($MachinePath[-1] -ne ';'){';'}else{''}
+    $EffectivePath = $MachinePath + $Sep + $UserPath
     Write-verbose "new effective path: $EffectivePath"
     Set-Item -Path "env:\$Script:ENV_VAR_PATH" -Value $EffectivePath -force
-}
+}                                                                                                                                                                                                                    
