@@ -1,4 +1,14 @@
 
+<#
+
+Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser'
+iwr https://github.com/eight-six/pave/blob/tidy/bs-client-vdi.ps1 ~\downloads\bs-client-vdi.ps1
+Unblock-File ~\downloads\bs-client-vdi.ps1
+. ~\downloads\bs-client-vdi.ps1
+
+#>
+
+
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = 'true'
 
@@ -89,6 +99,9 @@ function Invoke-ScriptWithPwsh {
         Write-LogEntry $ErrorMessage -IgnoreActionLevel
         throw $ErrorMessage
     }
+
+    Update-PathEnvVar 
+
 }
 
 $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
