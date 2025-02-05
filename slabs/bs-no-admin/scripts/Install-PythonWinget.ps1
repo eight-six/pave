@@ -6,7 +6,7 @@ $PSNativeCommandUseErrorActionPreference = $true
 
 $Heading = 'python'
 Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
-Push-LogAction "installing dotnet latest lts" -IncrementActionLevel
+Push-LogAction "installing python versions: $(em $Env:PAVE_PY_VERSION)" -IncrementActionLevel
 
 $Env:PAVE_PY_VERSION -split '\|' | % {
     Push-LogAction "Installing python $_"
