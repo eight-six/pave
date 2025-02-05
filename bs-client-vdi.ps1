@@ -1,10 +1,10 @@
 
 <#
 
-Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser'
-iwr https://github.com/eight-six/pave/blob/tidy/bs-client-vdi.ps1 -OutFile ~\downloads\bs-client-vdi.ps1
-Unblock-File ~\downloads\bs-client-vdi.ps1
-. ~\downloads\bs-client-vdi.ps1
+Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser';
+iwr https://raw.githubusercontent.com/eight-six/pave/refs/heads/tidy/bs-client-vdi.ps1 -OutFile ~\downloads\bs-client-vdi.ps1;
+Unblock-File ~\downloads\bs-client-vdi.ps1;
+. ~\downloads\bs-client-vdi.ps1;
 
 #>
 
@@ -23,9 +23,6 @@ if ($null -eq $Env:PAVE_USER_NAME) {
 if ($null -eq $Env:PAVE_USER_EMAIL ) {
     $Env:PAVE_USER_EMAIL = Read-Host -Prompt "Enter your email name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
 } 
-
-Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser'
-
 function prompt {        
     $Dollar = '$'
     $Options = Get-PSReadLineOption
