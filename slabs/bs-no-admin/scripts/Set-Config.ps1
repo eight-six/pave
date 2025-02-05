@@ -81,8 +81,8 @@ function apply{
 
 }
 
-apply $Configs "applying configs" "calling"
 apply $DotSourceConfigs "applying dot source configs" "dot sourcing" -DotSource
+apply $Configs "applying configs" "calling"
 
 Pop-LogAction
 Write-LogHeader "$Header - completed"
