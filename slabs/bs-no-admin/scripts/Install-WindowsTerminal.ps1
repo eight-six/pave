@@ -15,7 +15,7 @@
 
 param (
     [ValidatePattern('\d+\.\d+\.\d+\.\d+')]
-    [string]$Version = '1.18.2822.0',
+    [string]$Version = '1.21.3231.0',
     [string]$DownloadRoot = "https://github.com/microsoft/terminal/releases/download"
 )
 
@@ -28,7 +28,7 @@ if(Get-Process -Name 'WindowsTerminal' -ea 'Ignore'){
     throw 'Cannot install Windows Terminal when there is a running instance. Please close Windows Terminal'
 }
 
-$IsWindows10 = [Environment]::OSVersion.Version.Major -eq 10
+$IsWindows10 = [Environment]::OSVersion.Version.Major -eq 10 -and [Environment]::OSVersion.Version.Build -lt 22000
 $DownloadFolder = "v$Version"
 $DownloadName = if($IsWindows10){  
     "Microsoft.WindowsTerminal_$($Version)_8wekyb3d8bbwe.msixbundle_Windows10_PreinstallKit.zip" 
