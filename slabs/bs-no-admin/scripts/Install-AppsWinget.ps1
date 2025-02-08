@@ -3,8 +3,12 @@
 #Requires -modules pave-utils
 
 param(
-    [string[]]$Apps =  'Git.Git', 'Microsoft.VisualStudioCode.Insiders', 'Microsoft.Azure.StorageExplorer', 'Microsoft.AzureDataStudio'
-    [switch]$SkipDotNet 
+    [string[]]$Apps =  @(
+        'Git.Git'
+        'Microsoft.VisualStudioCode.Insiders'
+        'Microsoft.Azure.StorageExplorer'
+        'Microsoft.AzureDataStudio'
+    )
 )
 
 $ErrorActionPreference = 'Stop'
@@ -19,13 +23,7 @@ try{
 
     Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
     Push-LogAction 'installing default apps' -IncrementActionLevel
-    
-    if(!$SkipDotNet.IsPresent){
-        # can't install dotnet with user scope using winget 
-        & "$ScriptsFolder\Install-DotNetLts.ps1"
-    }
-    
-
+        
     $Apps | % {
         Push-LogAction "installing $(em $_) (user scope) with winget"
         winget install --exact $_ --id "$_" --scope user
