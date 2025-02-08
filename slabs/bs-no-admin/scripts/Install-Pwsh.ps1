@@ -108,6 +108,8 @@ try {
     Add-UserPath -PathToAdd $InstallPath -AtStart -AddToCurrentSession
     Pop-LogAction
 
+    Add-UserEnvVar -Name 'PWSH_DEFAULT_PATH' -Value $InstallPath
+
     {
         $ErrorActionPreference = 'Stop'
         $PSNativeCommandUseErrorActionPreference = $true
