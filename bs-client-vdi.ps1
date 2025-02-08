@@ -22,11 +22,14 @@ if ($null -eq $Env:PAVE_USER_NAME) {
 
 if ($null -eq $Env:PAVE_USER_EMAIL ) {
     $Env:PAVE_USER_EMAIL = Read-Host -Prompt "Enter your email name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
-} 
+}
+
 function prompt {        
-    $Dollar = '$'
+    $Role = [System.Security.Principal.WindowsBuiltInRole]::Administrator
+    $IsAdmin = (New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole($role)
+    $Dollar = if($IsAdmin ){'♆'} else {'P$'}
     $Options = Get-PSReadLineOption
-    $Color = $Options.DefaultTokenColor
+    $Color = if($IsAdmin){$Options.ErrorColor } else {$Options.DefaultTokenColor}
 
     $Line1 = @(
         $Options.CommentColor
@@ -34,7 +37,7 @@ function prompt {
         $PSStyle.Reset
     ) -join ''
 
-    $Line2 = "$($Color)P$Dollar $($PSStyle.Reset)"
+    $Line2 = "$($Color)$Dollar $($PSStyle.Reset)"
 
     '', $Line1, $Line2 -join "`n"
 }
@@ -80,7 +83,7 @@ Set-Remote $Env:PAVE_REMOTE
 Install-Slab slab-utils
 Install-Slab bs-no-admin
 Install-Slab reg-tweaks
-lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION
+lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION -UseWinget
 Update-PathEnvVar 
 
 function Invoke-ScriptWithPwsh {
