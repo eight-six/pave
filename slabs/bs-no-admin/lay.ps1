@@ -6,6 +6,7 @@ param (
     [string]$PwshVersion = "7.5.0",
     [string]$NugetMinVersion = "2.8.5.201",
     [switch]$InstallWindowsTerminal,
+    [switch]$UseWinget,
     [switch]$SkipDownload
 )
 
@@ -35,8 +36,13 @@ try {
     Write-LogEntry "Package provider installed: $($PackageProvider | ConvertTo-Json -Compress )"
     Pop-LogAction
 
-    # instal default apps
-    $AppScriptsFilePath = Join-Path $ScriptsFolder 'Install-Apps.ps1'
+    # install dotnet lts
+    $DotNetScriptFilePath = Join-Path $ScriptsFolder 'Install-DotNetLts.ps1'
+    & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $DotNetScriptFilePath
+    
+    # instal default apps with pwsh
+    $InstallAppsScript = if($UseWinget.IsPresent){'Install-AppsWinget.ps1' }else   {'Install-Apps.ps1'}
+    $AppScriptsFilePath = Join-Path $ScriptsFolder $InstallAppsScript
     & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $AppScriptsFilePath
 
     if ($LASTEXITCODE -ne 0) {
