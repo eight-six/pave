@@ -26,7 +26,7 @@ try{
         
     $Apps | % {
         Push-LogAction "installing $(em $_) (user scope) with winget"
-        winget install --exact $_ --id "$_" --scope user
+        winget install --exact $_ --id "$_" --scope user --accept-source-agreements
         Pop-LogAction
     }
 
