@@ -2,14 +2,9 @@
 .DESCRIPTION 
  Installs the specified version of Windows Terminal
 
- If Windows Terminal is your default 
+ If Windows Terminal is your default you can start a shell outside of Terminal with:
 
- $ start-process "ms-settings:developers"
-
- or 
-
- start conhost powershell
-
+    start conhost powershell
 #>
 #Requires -Version 5.1
 
