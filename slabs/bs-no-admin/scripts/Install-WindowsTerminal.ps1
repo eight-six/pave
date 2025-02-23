@@ -11,7 +11,7 @@
  start conhost powershell
 
 #>
-#Requires -PSEdition Desktop
+#Requires -Version 5.1
 
 param (
     [ValidatePattern('\d+\.\d+\.\d+\.\d+')]
