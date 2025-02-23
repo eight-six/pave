@@ -15,6 +15,21 @@ $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 $PSNativeCommandUseErrorActionPreference = 'true'
 
+#region config
+$NugetMinVersion = '2.8.5.201'
+$Env:PAVE_PWSH_VERSION = '7.5.0'
+$Env:PAVE_REMOTE = "https://eightsixpaveprodstg.blob.core.windows.net/public/latest-test"
+$Env:PAVE_PY_VERSION = '3.12|3.11' # separate multiple versions with a | - versions are installed left to right, the last one will be the default.
+
+if ($null -eq $Env:PAVE_USER_NAME) {
+    $Env:PAVE_USER_NAME = Read-Host -Prompt "Enter your user name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
+} 
+
+if ($null -eq $Env:PAVE_USER_EMAIL ) {
+    $Env:PAVE_USER_EMAIL = Read-Host -Prompt "Enter your email name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
+}
+#endregion
+
 #region support functions
 function Log {
     param(
@@ -41,26 +56,29 @@ function prompt {
 
     '', $Line1, $Line2 -join "`n"
 }
-#endregion
 
-#region config
-$NugetMinVersion = '2.8.5.201'
-$Env:PAVE_PWSH_VERSION = '7.5.0'
-$Env:PAVE_REMOTE = "https://eightsixpaveprodstg.blob.core.windows.net/public/latest-test"
-$Env:PAVE_PY_VERSION = '3.12|3.11' # separate multiple versions with a | - versions are installed left to right, the last one will be the default.
+function Invoke-ScriptWithPwsh {
+    param(
+        [string]$FilePath
+    )
 
-if ($null -eq $Env:PAVE_USER_NAME) {
-    $Env:PAVE_USER_NAME = Read-Host -Prompt "Enter your user name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
-} 
+    $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
+    & $PwshPath -NoProfile -File $FilePath 
+    
+    if ($LASTEXITCODE -ne 0) {
+        $ErrorMessage = "Running $(em $FilePath ) with $(em $PwshPath ) failed with exit code $(em $LASTEXITCODE)."
+        Write-LogEntry $ErrorMessage -IgnoreActionLevel
+        throw $ErrorMessage
+    }
 
-if ($null -eq $Env:PAVE_USER_EMAIL ) {
-    $Env:PAVE_USER_EMAIL = Read-Host -Prompt "Enter your email name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
+    Update-PathEnvVar 
+
 }
 #endregion
 
 Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Force
 
-#region register ps gallery and install winget
+#region install winget
 if($null -eq (Get-PackageProvider | ? { ($_.Name -eq 'NuGet') -and ($_.Version -ge $NugetMinVersion)})){
     Log "Installing nuget $NugetMinVersion or later..."
     Install-PackageProvider -Name 'NuGet' -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force 
@@ -83,6 +101,7 @@ Repair-WingetPackageManager
 Log "Installing winget - done"
 #endregion
 
+#region install pave
 $InstallCachePath = "$HOME\downloads\~pave" 
 
 if (!(Test-Path $InstallCachePath )) {
@@ -124,5 +143,25 @@ Set-Remote $Env:PAVE_REMOTE
 Install-Slab slab-utils
 Install-Slab bs-no-admin
 Install-Slab reg-tweaks
+#endregion
+
+#region install default apps
 lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION -UseWinget
 Update-PathEnvVar 
+#endregion
+
+#region install additional apps
+$ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
+
+'WindowsTerminal', 'PythonWinget', 'Node' | % {
+    $InstallFilePath = Join-Path $ScriptsPath "Install-$_.ps1"
+    Invoke-ScriptWithPwsh $InstallFilePath 
+    
+}
+
+#region apply configs
+$ConfigFilePath = Join-Path $ScriptsPath 'Set-ConfigConfig.ps1'
+Invoke-ScriptWithPwsh $ConfigFilePath 
+$ConfigFilePath = Join-Path $ScriptsPath 'Set-ConfigPrivate.ps1'
+Invoke-ScriptWithPwsh $ConfigFilePath 
+#endregion
