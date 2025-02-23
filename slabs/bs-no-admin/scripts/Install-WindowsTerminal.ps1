@@ -15,7 +15,7 @@
 
 param (
     [ValidatePattern('\d+\.\d+\.\d+\.\d+')]
-    [string]$Version = '1.21.3231.0',
+    [string]$Version = '1.22.10352.0',
     [string]$DownloadRoot = "https://github.com/microsoft/terminal/releases/download"
 )
 
