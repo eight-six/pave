@@ -2,9 +2,12 @@
 <#
 
 Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser';
-iwr https://raw.githubusercontent.com/eight-six/pave/refs/heads/tidy/bs-client-vdi.ps1 -OutFile ~\downloads\bs-client-vdi.ps1;
-Unblock-File ~\downloads\bs-client-vdi.ps1;
-. ~\downloads\bs-client-vdi.ps1;
+$Branch = 'tidy';
+$FileName = 'bs-win-sandbox.ps1';
+$FilePath = "~\downloads\$FileName";
+iwr "https://raw.githubusercontent.com/eight-six/pave/refs/$Branch/tidy/$FileName" -OutFile $FilePath;
+Unblock-File $FilePath;
+. $FilePath;
 
 #>
 
@@ -104,7 +107,6 @@ function Invoke-ScriptWithPwsh {
 
 }
 
-$PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
 $ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
 
 # install python versions
