@@ -3,9 +3,9 @@
 
 Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser';
 $Branch = 'tidy';
-$FileName = 'bs-win-sandbox.ps1';
+$FileName = 'bs-client-vdi.ps1';
 $FilePath = "~\downloads\$FileName";
-iwr "https://raw.githubusercontent.com/eight-six/pave/refs/$Branch/tidy/$FileName" -OutFile $FilePath;
+iwr "https://raw.githubusercontent.com/eight-six/pave/refs/$Branch/$FileName" -OutFile $FilePath;
 Unblock-File $FilePath;
 . $FilePath;
 
