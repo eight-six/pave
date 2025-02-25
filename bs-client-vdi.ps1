@@ -118,8 +118,16 @@ $InstallNodeFilePath = Join-Path $ScriptsPath 'Install-Node.ps1'
 Invoke-ScriptWithPwsh $InstallNodeFilePath 
 
 # apply configs
-$ConfigFilePath = Join-Path $ScriptsPath 'Set-ConfigConfig.ps1'
-Invoke-ScriptWithPwsh $ConfigFilePath 
-$ConfigFilePath = Join-Path $ScriptsPath 'Set-ConfigPrivate.ps1'
-Invoke-ScriptWithPwsh $ConfigFilePath 
+$ConfigFilePath = Join-Path $ScriptsPath 'Set-Config.ps1'
+$Params = @{
+    Org = 'stvnrs'
+    Repo = 'config'
+    Path = 'uwm-vm'   
+}
+& $ConfigFilePath @Params -DotSource -Include 'env' 
+& $ConfigFilePath @Params -ExcludeInclude 'env' 
 
+$ConfigFilePath = Join-Path $ScriptsPath 'Set-ConfigPrivate.ps1'
+$Params.Repo = 'config-private'
+& $ConfigFilePath @Params -DotSource -Include 'env' 
+& $ConfigFilePath @Params -ExcludeInclude 'env' 
