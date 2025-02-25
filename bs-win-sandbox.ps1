@@ -160,8 +160,18 @@ $ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
 }
 
 #region apply configs
-$ConfigFilePath = Join-Path $ScriptsPath 'Set-ConfigConfig.ps1'
-Invoke-ScriptWithPwsh $ConfigFilePath 
+# apply configs
+$ConfigFilePath = Join-Path $ScriptsPath 'Set-Config.ps1'
+$Params = @{
+    Org = 'stvnrs'
+    Repo = 'config'
+    Path = 'uwm-vm'   
+}
+& $ConfigFilePath @Params -DotSource -Include 'env' 
+& $ConfigFilePath @Params -ExcludeInclude 'env' 
+
 $ConfigFilePath = Join-Path $ScriptsPath 'Set-ConfigPrivate.ps1'
-Invoke-ScriptWithPwsh $ConfigFilePath 
+$Params.Repo = 'config-private'
+& $ConfigFilePath @Params -DotSource -Include 'env' 
+& $ConfigFilePath @Params -ExcludeInclude 'env' 
 #endregion
