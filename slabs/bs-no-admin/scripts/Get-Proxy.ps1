@@ -4,7 +4,6 @@ using namespace System.Net
 function Get-Proxy {
     param(
         [Parameter(Mandatory)]
-        [ValidateNotNullOrWhiteSpace()]
         $TestUri
     )
 
