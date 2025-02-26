@@ -127,7 +127,6 @@ $Params = @{
 & $ConfigFilePath @Params -DotSource -Include 'env' 
 & $ConfigFilePath @Params -ExcludeInclude 'env' 
 
-$ConfigFilePath = Join-Path $ScriptsPath 'Set-ConfigPrivate.ps1'
 $Params.Repo = 'config-private'
 & $ConfigFilePath @Params -DotSource -Include 'env' 
 & $ConfigFilePath @Params -ExcludeInclude 'env' 
