@@ -43,9 +43,9 @@ function Log {
 function prompt {        
     $Role = [System.Security.Principal.WindowsBuiltInRole]::Administrator
     $IsAdmin = (New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole($role)
-    $Dollar = if($IsAdmin ){'♆'} else {'P$'}
+    $Dollar = if ($IsAdmin ) { '♆' } else { 'P$' }
     $Options = Get-PSReadLineOption
-    $Color = if($IsAdmin){$Options.ErrorColor } else {$Options.DefaultTokenColor}
+    $Color = if ($IsAdmin) { $Options.ErrorColor } else { $Options.DefaultTokenColor }
 
     $Line1 = @(
         $Options.CommentColor
@@ -80,19 +80,21 @@ function Invoke-ScriptWithPwsh {
 Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Force
 
 #region install winget
-if($null -eq (Get-PackageProvider | ? { ($_.Name -eq 'NuGet') -and ($_.Version -ge $NugetMinVersion)})){
+if ($null -eq (Get-PackageProvider | ? { ($_.Name -eq 'NuGet') -and ($_.Version -ge $NugetMinVersion) })) {
     Log "Installing nuget $NugetMinVersion or later..."
     Install-PackageProvider -Name 'NuGet' -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force 
     Log "Installing nuget $NugetMinVersion or later - done!"
-} else {
+}
+else {
     Log "Nuget already installed :)"
 }
 
-if($null -eq (Get-PSRepository | ? SourceLocation -eq 'https://www.powershellgallery.com/api/v2' )){
+if ($null -eq (Get-PSRepository | ? SourceLocation -eq 'https://www.powershellgallery.com/api/v2' )) {
     Log "Registering PS Gallery..."
     Register-PSRepository -Default -Force
     Log "Registering PS Gallery - done!"
-} else {
+}
+else {
     Log "PS Gallery already registered :)"
 }
 
@@ -163,16 +165,21 @@ $ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
 #region apply configs
 # apply configs
 $ConfigFilePath = Join-Path $ScriptsPath 'Set-Config.ps1'
-$Params = @{
-    Org = 'stvnrs'
-    Repo = 'config'
-    Path = 'uwm-vm'   
+, @{
+    Org       = 'stvnrs'
+    Repo      = 'config'
+    Path      = 'win-sandbox' 
+    DotSource = 'env'
+    Include   = $null
+} | % {
+    $Params = @{
+        Org  = $_.Org
+        Repo = $_.Repo
+        Path = $_.Path
+    }
+    if ($null -ne $_.DotSource) {
+        & $ConfigFilePath @Params -DotSource -Include $_.DotSource
+    }
+    & $ConfigFilePath @Params -Exclude $_.DotSource -Include $Include
 }
-& $ConfigFilePath @Params -DotSource -Include 'env' 
-& $ConfigFilePath @Params -ExcludeInclude 'env' 
-
-$ConfigFilePath = Join-Path $ScriptsPath 'Set-ConfigPrivate.ps1'
-$Params.Repo = 'config-private'
-& $ConfigFilePath @Params -DotSource -Include 'env' 
-& $ConfigFilePath @Params -ExcludeInclude 'env' 
 #endregion
