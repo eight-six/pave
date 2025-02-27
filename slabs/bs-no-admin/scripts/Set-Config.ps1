@@ -14,7 +14,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $true
 
-Write-Verbose "Include is null: $($null -eq $Include)"slabs\bs-no-admin\scripts\Set-Config.ps1
+Write-Verbose "Include is null: $($null -eq $Include)"
 Write-Verbose "Exclude is null: $($null -eq $Exclude)"
 
 if ($Env:Path[-1] -ne ';') {
@@ -39,7 +39,9 @@ if ($null -eq (gcm $GitCmd -ea 'Ignore')) {
     }
 }
 
-$Proxy = [System.Net.WebRequest]::GetSystemWebProxy().GetProxy('https://github.com')
+
+. (Join-Path $PSScriptRoot 'Get-Proxy.ps1')
+$Proxy = Get-Proxy 'https://github.com'
 $AdditionalArgs = if ($null -ne $Proxy) { "-c http.proxy=$($Proxy.OriginalString)" }else { $null }
 
 $RepoLocal = "$($PWD.Path)\$Repo"
@@ -61,7 +63,7 @@ Push-LogAction "applying configs from $(em $RepoLocal)"
 
 $ConfigsRoot = "$RepoLocal\configs\$Path"
 $ConfigsToApply = ls $ConfigsRoot  -Directory -Name -Include $Include -Exclude $Exclude
-Write-Verbose "looking for configs in $ConfigsRoot" -Verbose
+Write-Verbose "looking for configs in $ConfigsRoot " -Verbose
 Write-Verbose "Including: $( $Include -join ',') " -Verbose
 Write-Verbose "Excluding: $( $Exclude -join ',') " -Verbose
 Write-Verbose "Applying: $($ConfigsToApply  -join ',') " -Verbose
