@@ -27,12 +27,13 @@ if ($null -eq $Env:PAVE_USER_EMAIL ) {
     $Env:PAVE_USER_EMAIL = Read-Host -Prompt "Enter your email name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
 }
 
+#region support functions
 function prompt {        
     $Role = [System.Security.Principal.WindowsBuiltInRole]::Administrator
     $IsAdmin = (New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole($role)
-    $Dollar = if($IsAdmin ){'♆'} else {'P$'}
+    $Dollar = if ($IsAdmin ) { '♆' } else { 'P$' }
     $Options = Get-PSReadLineOption
-    $Color = if($IsAdmin){$Options.ErrorColor } else {$Options.DefaultTokenColor}
+    $Color = if ($IsAdmin) { $Options.ErrorColor } else { $Options.DefaultTokenColor }
 
     $Line1 = @(
         $Options.CommentColor
@@ -44,6 +45,38 @@ function prompt {
 
     '', $Line1, $Line2 -join "`n"
 }
+function Invoke-ScriptWithPwsh {
+    param(
+
+        [Parameter(ParameterSetName = 'WithFile', Mandatory)]
+        [string]$FilePath,
+        [Parameter(ParameterSetName = 'WithScriptBlock', Mandatory)]
+        [string]$ScriptBlock,
+        [Parameter(ParameterSetName = 'WithCommand', Mandatory)]
+        [string]$Command
+    )
+
+    $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
+
+    if ($ScriptBlock.IsPresent) {
+        & $PwshPath -NoProfile -Command $ScriptBlock 
+    }
+    if ($WithCommand.IsPresent) {
+        & $PwshPath -NoProfile -Command $Command
+    }
+    else {
+        & $PwshPath -NoProfile -File $FilePath 
+    }
+    if ($LASTEXITCODE -ne 0) {
+        $ErrorMessage = "Running $(em $FilePath ) with $(em $PwshPath ) failed with exit code $(em $LASTEXITCODE)."
+        Write-LogEntry $ErrorMessage -IgnoreActionLevel
+        throw $ErrorMessage
+    }
+
+    Update-PathEnvVar 
+
+}
+#endregion
 
 $InstallCachePath = "$HOME\downloads\~pave" 
 
@@ -89,44 +122,25 @@ Install-Slab reg-tweaks
 lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION -UseWinget
 Update-PathEnvVar 
 
-function Invoke-ScriptWithPwsh {
-    param(
-        [string]$FilePath
-    )
 
-    $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
-    & $PwshPath -NoProfile -File $FilePath 
-    
-    if ($LASTEXITCODE -ne 0) {
-        $ErrorMessage = "Running $(em $FilePath ) with $(em $PwshPath ) failed with exit code $(em $LASTEXITCODE)."
-        Write-LogEntry $ErrorMessage -IgnoreActionLevel
-        throw $ErrorMessage
-    }
-
-    Update-PathEnvVar 
-
-}
 
 $ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
 
+#region install other apps
 # install python versions
 $InstallPythonFilePath = Join-Path $ScriptsPath 'Install-PythonWinget.ps1'
 Invoke-ScriptWithPwsh $InstallPythonFilePath 
-
 # install node
 $InstallNodeFilePath = Join-Path $ScriptsPath 'Install-Node.ps1'
 Invoke-ScriptWithPwsh $InstallNodeFilePath 
+#endregion
 
-# apply configs
+#region apply configs
 $ConfigFilePath = Join-Path $ScriptsPath 'Set-Config.ps1'
-$Params = @{
-    Org = 'stvnrs'
-    Repo = 'config'
-    Path = 'uwm-vm'   
-}
-& $ConfigFilePath @Params -DotSource -Include 'env' 
-& $ConfigFilePath @Params -ExcludeInclude 'env' 
-
-$Params.Repo = 'config-private'
-& $ConfigFilePath @Params -DotSource -Include 'env' 
-& $ConfigFilePath @Params -ExcludeInclude 'env' 
+$SharedParams = "-Org 'stvnrs' -Repo 'config' -Path 'uwm-vm'"  
+Invoke-ScriptWithPwsh -command "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
+Invoke-ScriptWithPwsh -command "$ConfigFilePath $SharedParams -Exclude 'env'"
+$SharedParams = "-Org 'stvnrs' -Repo 'config-private' -Path 'uwm-vm'"  
+Invoke-ScriptWithPwsh -command "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
+Invoke-ScriptWithPwsh -command "$ConfigFilePath $SharedParams -Exclude 'env'"
+#endregion
