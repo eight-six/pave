@@ -69,7 +69,7 @@ $Env:PAVE_NODE_VER = 2.22.10
 #Requires -PSEdition Core
 
 param (
-    [ValidatePattern('\d+\.\d+\.\d+')]
+    [ValidatePattern('^\d+\.\d+\.\d+$')]
     [string]$Version = $Env:PAVE_NODE_VER ,
     [string]$DownloadRoot = 'https://nodejs.org/dist'
 )
