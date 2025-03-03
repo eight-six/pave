@@ -58,14 +58,29 @@ function prompt {
     '', $Line1, $Line2 -join "`n"
 }
 
-function Invoke-ScriptWithPwsh {
+function Invoke-Pwsh {
+    # [CmdletBinding(DefaultParameterSetName = 'WithFile')]
     param(
-        [string]$FilePath
+
+        [Parameter(ParameterSetName = 'WithFile', Mandatory, Position=0)]
+        [string]$FilePath,
+        [Parameter(ParameterSetName = 'WithScriptBlock', Mandatory)]
+        [string]$ScriptBlock,
+        [Parameter(ParameterSetName = 'WithCommand', Mandatory)]
+        [string]$Command
     )
 
     $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
-    & $PwshPath -NoProfile -File $FilePath 
-    
+
+    if ($ScriptBlock.IsPresent) {
+        & $PwshPath -NoProfile -Command $ScriptBlock 
+    }
+    if ($WithCommand.IsPresent) {
+        & $PwshPath -NoProfile -Command $Command
+    }
+    else {
+        & $PwshPath -NoProfile -File $FilePath 
+    }
     if ($LASTEXITCODE -ne 0) {
         $ErrorMessage = "Running $(em $FilePath ) with $(em $PwshPath ) failed with exit code $(em $LASTEXITCODE)."
         Write-LogEntry $ErrorMessage -IgnoreActionLevel
@@ -75,7 +90,7 @@ function Invoke-ScriptWithPwsh {
     Update-PathEnvVar 
 
 }
-#endregion
+#endregion 
 
 Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Force
 
@@ -158,28 +173,13 @@ $ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
 
 'WindowsTerminal', 'PythonWinget', 'Node' | % {
     $InstallFilePath = Join-Path $ScriptsPath "Install-$_.ps1"
-    Invoke-ScriptWithPwsh $InstallFilePath 
+    Invoke-Pwsh -File $InstallFilePath 
     
 }
 
 #region apply configs
-# apply configs
 $ConfigFilePath = Join-Path $ScriptsPath 'Set-Config.ps1'
-, @{
-    Org       = 'stvnrs'
-    Repo      = 'config'
-    Path      = 'win-sandbox' 
-    DotSource = 'env'
-    Include   = $null
-} | % {
-    $Params = @{
-        Org  = $_.Org
-        Repo = $_.Repo
-        Path = $_.Path
-    }
-    if ($null -ne $_.DotSource) {
-        & $ConfigFilePath @Params -DotSource -Include $_.DotSource
-    }
-    & $ConfigFilePath @Params -Exclude $_.DotSource -Include $Include
-}
+$SharedParams = "-Org 'stvnrs' -Repo 'config' -Path 'uwm-vm'"  
+Invoke-Pwsh -command "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
+Invoke-Pwsh -command "$ConfigFilePath $SharedParams -Exclude 'env'"
 #endregion
