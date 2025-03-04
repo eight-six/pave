@@ -47,35 +47,68 @@ function prompt {
 }
 function Invoke-Pwsh {
     param(
-
+ 
         [Parameter(ParameterSetName = 'WithFile', Mandatory)]
         [string]$FilePath,
         [Parameter(ParameterSetName = 'WithScriptBlock', Mandatory)]
         [string]$ScriptBlock,
-        [Parameter(ParameterSetName = 'WithCommand', Mandatory)]
-        [string]$Command
+        [Parameter(ParameterSetName = 'WithCommandText', Mandatory)]
+        [string]$CommandText
     )
-
+ 
+ 
+    Write-Verbose "ParameterSetName: $($PSCmdLet.ParameterSetName)" -verbose
+ 
     $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
-
-    if ($ScriptBlock.IsPresent) {
-        & $PwshPath -NoProfile -Command $ScriptBlock 
-    }
-    if ($WithCommand.IsPresent) {
-        & $PwshPath -NoProfile -Command $Command
-    }
-    else {
-        & $PwshPath -NoProfile -File $FilePath 
-    }
+ 
+    switch ($PSCmdLet.ParameterSetName) {
+        "WithFile" {
+            & $PwshPath -NoProfile -File $FilePath
+        }
+        "WithScriptBlock" {
+            & $PwshPath -NoProfile -Command $ScriptBlock
+        }
+        "WithCommandText" {
+            & $PwshPath -NoProfile -Command "$CommandText"
+        }
+        default {
+            throw "Unknown parameter set : $($PSCmdLet.ParameterSetName)"
+        }
+    }        
+ 
     if ($LASTEXITCODE -ne 0) {
         $ErrorMessage = "Running $(em $FilePath ) with $(em $PwshPath ) failed with exit code $(em $LASTEXITCODE)."
         Write-LogEntry $ErrorMessage -IgnoreActionLevel
         throw $ErrorMessage
     }
-
-    Update-PathEnvVar 
-
+ 
+    Update-PathEnvVar
+ 
 }
+
+function Update-UserEnvVar {
+    <#
+    .SYNOPSIS
+    Updates the specified env var from the latest USER settings
+    
+    .DESCRIPTION
+    Long description
+    
+    .EXAMPLE
+    An example
+    
+    .NOTES
+    General notes
+    #>
+    params(
+        [Parameter(Mandatory, Position=0)]
+        [string]$Name
+    )
+    
+    $Value = [System.Environment]::GetEnvironmentVariable($Name, [EnvironmentVariableTarget]::User)
+    Write-verbose "$Name Value: $UserPath"
+    Set-Item -Path "env:\$Name" -Value $Value -force
+} 
 #endregion
 
 $InstallCachePath = "$HOME\downloads\~pave" 
@@ -136,9 +169,10 @@ Invoke-Pwsh -File $InstallNodeFilePath
 #region apply configs
 $ConfigFilePath = Join-Path $ScriptsPath 'Set-Config.ps1'
 $SharedParams = "-Org 'stvnrs' -Repo 'config' -Path 'uwm-vm'"  
-Invoke-Pwsh -command "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
-Invoke-Pwsh -command "$ConfigFilePath $SharedParams -Exclude 'env'"
+Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
+Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -Exclude 'env', 'code'"
 $SharedParams = "-Org 'stvnrs' -Repo 'config-private' -Path 'uwm-vm'"  
-Invoke-Pwsh -command "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
-Invoke-Pwsh -command "$ConfigFilePath $SharedParams -Exclude 'env'"
+Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
+Update-UserEnvVar "REPOS_LOCAL"
+Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -Exclude 'env'"
 #endregion
