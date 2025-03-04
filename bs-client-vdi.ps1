@@ -45,7 +45,7 @@ function prompt {
 
     '', $Line1, $Line2 -join "`n"
 }
-function Invoke-ScriptWithPwsh {
+function Invoke-Pwsh {
     param(
 
         [Parameter(ParameterSetName = 'WithFile', Mandatory)]
@@ -122,25 +122,23 @@ Install-Slab reg-tweaks
 lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION -UseWinget
 Update-PathEnvVar 
 
-
-
 $ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
 
 #region install other apps
 # install python versions
 $InstallPythonFilePath = Join-Path $ScriptsPath 'Install-PythonWinget.ps1'
-Invoke-ScriptWithPwsh $InstallPythonFilePath 
+Invoke-Pwsh -File $InstallPythonFilePath 
 # install node
 $InstallNodeFilePath = Join-Path $ScriptsPath 'Install-Node.ps1'
-Invoke-ScriptWithPwsh $InstallNodeFilePath 
+Invoke-Pwsh -File $InstallNodeFilePath 
 #endregion
 
 #region apply configs
 $ConfigFilePath = Join-Path $ScriptsPath 'Set-Config.ps1'
 $SharedParams = "-Org 'stvnrs' -Repo 'config' -Path 'uwm-vm'"  
-Invoke-ScriptWithPwsh -command "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
-Invoke-ScriptWithPwsh -command "$ConfigFilePath $SharedParams -Exclude 'env'"
+Invoke-Pwsh -command "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
+Invoke-Pwsh -command "$ConfigFilePath $SharedParams -Exclude 'env'"
 $SharedParams = "-Org 'stvnrs' -Repo 'config-private' -Path 'uwm-vm'"  
-Invoke-ScriptWithPwsh -command "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
-Invoke-ScriptWithPwsh -command "$ConfigFilePath $SharedParams -Exclude 'env'"
+Invoke-Pwsh -command "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
+Invoke-Pwsh -command "$ConfigFilePath $SharedParams -Exclude 'env'"
 #endregion
