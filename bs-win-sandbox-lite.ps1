@@ -24,7 +24,7 @@ $Env:PAVE_PY_VERSION = '3.12|3.11' # separate multiple versions with a | - versi
 $AdditionalApps = @('WindowsTerminal')
 $Configs = @{
     Org   = 'stvnrs' 
-    Repos = @{
+    Repos = ,@{
         Name   = 'config' 
         Groups = @(
             @{
@@ -199,17 +199,25 @@ $AdditionalApps | % {
 $ConfigFilePath = Join-Path $ScriptsPath 'Set-Config.ps1'
 
 $Configs.Repos | % {
-    $Repo = $_.Repo
+    $Repo = $_
 
-    $Repo.Paths | % {
-        $Group = $_.Groups
+    $Repo.Groups | % {
+        $Group = $_
 
         $SharedParams = "-Org '$($Configs.Org)' -Repo '$($Repo.Name)' -Path '$($Group.Path)'"  
-        $DotSource = ($Group.DotSource | % { "'$_'" } ) -join ', '
-        $Call = ($Group.Call | % { "'$_'" } ) -join ', '
-        Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -DotSource -Include $DotSource"
-        Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -Exclude $DotSource -Include $Call"
-        Update-UserEnvVar "REPOS_LOCAL"
+        $CommandTextBase = "$ConfigFilePath $SharedParams"
+
+        if($Group.DotSource.Length -gt 0){
+            $DotSource = ($Group.DotSource | % { "'$_'" } ) -join ', '
+            $CommandText =  $CommandTextBase + " -DotSource -Include $DotSource"
+            Invoke-Pwsh -CommandText $CommandText
+        }
+                
+        if($Group.Call.Length -gt 0){
+            $Call = ($Group.Call | % { "'$_'" } ) -join ', '
+            $CommandText = $CommandTextBase + " -Include $Call"
+            Invoke-Pwsh -CommandText $CommandText
+        }
     }
 }
 
