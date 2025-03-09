@@ -84,7 +84,7 @@ function Invoke-Pwsh {
         [Parameter(ParameterSetName = 'WithFile', Mandatory, Position=0)]
         [string]$FilePath,
         [Parameter(ParameterSetName = 'WithScriptBlock', Mandatory)]
-        [string]$ScriptBlock,
+        [ScriptBlock]$ScriptBlock,
         [Parameter(ParameterSetName = 'WithCommand', Mandatory)]
         [string]$Command
     )
