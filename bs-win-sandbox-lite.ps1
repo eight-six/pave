@@ -2,7 +2,7 @@
 
 Set-ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Force;
 $Branch = 'tidy';
-$FileName = 'bs-win-sandbox.ps1';
+$FileName = 'bs-win-sandbox-lite.ps1';
 $FilePath = "~\downloads\$FileName";
 iwr "https://raw.githubusercontent.com/eight-six/pave/refs/heads/$Branch/$FileName" -OutFile $FilePath;
 Unblock-File $FilePath;
