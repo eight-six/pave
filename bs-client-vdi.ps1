@@ -100,7 +100,7 @@ function Update-UserEnvVar {
     .NOTES
     General notes
     #>
-    params(
+    param(
         [Parameter(Mandatory, Position=0)]
         [string]$Name
     )
