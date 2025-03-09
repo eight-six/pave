@@ -12,8 +12,6 @@ Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
 Push-LogAction 'installing default apps' -IncrementActionLevel
 & "$ScriptsFolder\Install-GitForWindows.ps1" 
 & "$ScriptsFolder\Install-BsCode.ps1" -BuildType $VsBuildType
-& "$ScriptsFolder\Install-AzureDataStudio.ps1"
-& "$ScriptsFolder\Install-StorageExplorer.ps1"
 Pop-LogAction
 
 if($null -eq $MyInvocation.PSCommandPath){

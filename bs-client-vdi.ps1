@@ -19,6 +19,37 @@ $Env:PAVE_PWSH_VERSION = '7.5.0'
 $Env:PAVE_REMOTE = "https://eightsixpaveprodstg.blob.core.windows.net/public/latest-test"
 $Env:PAVE_PY_VERSION = '3.12|3.11' # separate multiple versions with a | - versions are installed left to right, the last one will be the default.
 
+$AdditionalApps = @('AzureDataStudio', 'StorageExplorer', 'PythonWinget', 'Node')
+
+$Configs = @{
+    Org   = 'stvnrs' 
+    Repos = @{
+        Name   = 'config' 
+        Groups = @(
+            @{
+                Path   = 'shared'
+                Source = 'env'
+                Call   = 'pwsh', 'code-insiders', 'StorageExplorer', 'node', 'python'
+            },
+            @{
+                Path      = 'uvm'
+                DotSource = 'env'
+                Call      = @()
+            }
+        )       
+    },
+    @{
+        Name  = 'config-private' 
+        Paths = @(
+            @{
+                Path      = 'uvm'
+                DotSource = 'env'
+                Call      = @()
+            }
+        )       
+    }
+}
+
 if ($null -eq $Env:PAVE_USER_NAME) {
     $Env:PAVE_USER_NAME = Read-Host -Prompt "Enter your user name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
 } 
@@ -101,7 +132,7 @@ function Update-UserEnvVar {
     General notes
     #>
     param(
-        [Parameter(Mandatory, Position=0)]
+        [Parameter(Mandatory, Position = 0)]
         [string]$Name
     )
     
@@ -158,21 +189,28 @@ Update-PathEnvVar
 $ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
 
 #region install other apps
-# install python versions
-$InstallPythonFilePath = Join-Path $ScriptsPath 'Install-PythonWinget.ps1'
-Invoke-Pwsh -File $InstallPythonFilePath 
-# install node
-$InstallNodeFilePath = Join-Path $ScriptsPath 'Install-Node.ps1'
-Invoke-Pwsh -File $InstallNodeFilePath 
+$AdditionalApps | % {
+    $InstallFilePath = Join-Path $ScriptsPath "Install-$_.ps1"
+    Invoke-Pwsh -File $InstallFilePath 
+}
 #endregion
 
 #region apply configs
 $ConfigFilePath = Join-Path $ScriptsPath 'Set-Config.ps1'
-$SharedParams = "-Org 'stvnrs' -Repo 'config' -Path 'uwm-vm'"  
-Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
-Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -Exclude 'env', 'code'"
-$SharedParams = "-Org 'stvnrs' -Repo 'config-private' -Path 'uwm-vm'"  
-Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
-Update-UserEnvVar "REPOS_LOCAL"
-Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -Exclude 'env'"
+
+$Configs.Repos | % {
+    $Repo = $_.Repo
+
+    $Repo.Paths | % {
+        $Group = $_.Groups
+
+        $SharedParams = "-Org '$($Configs.Org)' -Repo '$($Repo.Name)' -Path '$($Group.Path)'"  
+        $DotSource = ($Group.DotSource | % { "'$_'" } ) -join ', '
+        $Call = ($Group.Call | % { "'$_'" } ) -join ', '
+        Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -DotSource -Include $DotSource"
+        Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -Exclude $DotSource -Include $Call"
+        Update-UserEnvVar "REPOS_LOCAL"
+    }
+}
+
 #endregion

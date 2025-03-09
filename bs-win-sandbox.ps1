@@ -22,6 +22,26 @@ $Env:PAVE_PWSH_VERSION = '7.5.0'
 $Env:PAVE_REMOTE = "https://eightsixpaveprodstg.blob.core.windows.net/public/latest-test"
 $Env:PAVE_PY_VERSION = '3.12|3.11' # separate multiple versions with a | - versions are installed left to right, the last one will be the default.
 
+$AdditionalApps = @('WindowsTerminal', 'AzureDataStudio', 'StorageExplorer')
+$Configs = @{
+    Org   = 'stvnrs' 
+    Repos = @{
+        Name   = 'config' 
+        Groups = @(
+            @{
+                Path   = 'default'
+                Source = 'env'
+                Call   = 'terminal', 'git', 'code-insders'
+            },
+            @{
+                Path      = 'uvm'
+                DotSource = 'env'
+                Call      = @()
+            }
+        )       
+    }
+}
+
 if ($null -eq $Env:PAVE_USER_NAME) {
     $Env:PAVE_USER_NAME = Read-Host -Prompt "Enter your user name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
 } 
@@ -179,7 +199,20 @@ $ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
 
 #region apply configs
 $ConfigFilePath = Join-Path $ScriptsPath 'Set-Config.ps1'
-$SharedParams = "-Org 'stvnrs' -Repo 'config' -Path 'uwm-vm'"  
-Invoke-Pwsh -command "$ConfigFilePath $SharedParams -DotSource -Include 'env'"
-Invoke-Pwsh -command "$ConfigFilePath $SharedParams -Exclude 'env'"
+
+$Configs.Repos | % {
+    $Repo = $_.Repo
+
+    $Repo.Paths | % {
+        $Group = $_.Groups
+
+        $SharedParams = "-Org '$($Configs.Org)' -Repo '$($Repo.Name)' -Path '$($Group.Path)'"  
+        $DotSource = ($Group.DotSource | % { "'$_'" } ) -join ', '
+        $Call = ($Group.Call | % { "'$_'" } ) -join ', '
+        Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -DotSource -Include $DotSource"
+        Invoke-Pwsh -CommandText "$ConfigFilePath $SharedParams -Exclude $DotSource -Include $Call"
+        Update-UserEnvVar "REPOS_LOCAL"
+    }
+}
+
 #endregion
