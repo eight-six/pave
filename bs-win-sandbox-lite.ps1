@@ -86,7 +86,7 @@ function Invoke-Pwsh {
         [Parameter(ParameterSetName = 'WithScriptBlock', Mandatory)]
         [ScriptBlock]$ScriptBlock,
         [Parameter(ParameterSetName = 'WithCommand', Mandatory)]
-        [string]$Command
+        [string]$CommandText
     )
 
     $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
