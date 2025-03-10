@@ -39,8 +39,6 @@ repos:
     Call: []
     DotSource: env
 "@
-
-$Configs = $ConfigsConfig | ConvertFrom-Yaml 
     
 if ($null -eq $Env:PAVE_USER_NAME) {
     $Env:PAVE_USER_NAME = Read-Host -Prompt "Enter your user name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
@@ -120,6 +118,8 @@ rm $ModuleZipFileName
 if (!(Get-Module -ListAvailable 'powershell-yaml')) {
     Install-Module powershell-yaml -Scope 'CurrentUser' -Force
 }
+
+$Configs = $ConfigsConfig | ConvertFrom-Yaml 
 
 Import-Module pave-logger
 Import-Module pave-utils
