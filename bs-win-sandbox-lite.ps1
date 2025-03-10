@@ -21,26 +21,27 @@ $NugetMinVersion = '2.8.5.201'
 $Env:PAVE_PWSH_VERSION = '7.5.0'
 $Env:PAVE_REMOTE = "https://eightsixpaveprodstg.blob.core.windows.net/public/latest-test"
 $Env:PAVE_PY_VERSION = '3.12|3.11' # separate multiple versions with a | - versions are installed left to right, the last one will be the default.
-$AdditionalApps = @('WindowsTerminal')
-$Configs = @{
-    Org   = 'stvnrs' 
-    Repos = ,@{
-        Name   = 'config' 
-        Groups = @(
-            @{
-                Path   = 'default'
-                Source = 'env'
-                Call   = 'terminal', 'git', 'code-insders'
-            },
-            @{
-                Path      = 'uvm'
-                DotSource = 'env'
-                Call      = @()
-            }
-        )       
-    }
-}
+$AdditionalApps = @('windows-terminal')
 
+$ConfigsConfig = @"
+org: stvnrs
+repos:
+- name: config
+  groups:
+  - path: default 
+    dotSource: 
+    - env
+    call:
+    - windows-terminal
+    - git
+    - code-insders
+  - Path: uvm
+    Call: []
+    DotSource: env
+"@
+
+$Configs = $ConfigsConfig | ConvertFrom-Yaml 
+    
 if ($null -eq $Env:PAVE_USER_NAME) {
     $Env:PAVE_USER_NAME = Read-Host -Prompt "Enter your user name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
 } 
@@ -48,94 +49,42 @@ if ($null -eq $Env:PAVE_USER_NAME) {
 if ($null -eq $Env:PAVE_USER_EMAIL ) {
     $Env:PAVE_USER_EMAIL = Read-Host -Prompt "Enter your email name for git logs (set `$Env:PAVE_USER_NAME to avoid this prompt in future)"
 }
-#endregion
+#endregion config
 
 #region support functions
-function Log {
+function cLog {
     param(
         [string] $message
     )
-
     Write-Information "$(get-date -format 'yyyy-MM-ddTHH:mm:ssZ') $message"
 }
-
-function prompt {        
-    $Role = [System.Security.Principal.WindowsBuiltInRole]::Administrator
-    $IsAdmin = (New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole($role)
-    $Dollar = if ($IsAdmin ) { '♆' } else { 'P$' }
-    $Options = Get-PSReadLineOption
-    $Color = if ($IsAdmin) { $Options.ErrorColor } else { $Options.DefaultTokenColor }
-
-    $Line1 = @(
-        $Options.CommentColor
-        $Pwd.Path.Replace($HOME, '~')
-        $PSStyle.Reset
-    ) -join ''
-
-    $Line2 = "$($Color)$Dollar $($PSStyle.Reset)"
-
-    '', $Line1, $Line2 -join "`n"
-}
-
-function Invoke-Pwsh {
-    # [CmdletBinding(DefaultParameterSetName = 'WithFile')]
-    param(
-
-        [Parameter(ParameterSetName = 'WithFile', Mandatory, Position=0)]
-        [string]$FilePath,
-        [Parameter(ParameterSetName = 'WithScriptBlock', Mandatory)]
-        [ScriptBlock]$ScriptBlock,
-        [Parameter(ParameterSetName = 'WithCommand', Mandatory)]
-        [string]$Command
-    )
-
-    $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
-
-    if ($ScriptBlock.IsPresent) {
-        & $PwshPath -NoProfile -Command $ScriptBlock 
-    }
-    if ($WithCommand.IsPresent) {
-        & $PwshPath -NoProfile -Command $Command
-    }
-    else {
-        & $PwshPath -NoProfile -File $FilePath 
-    }
-    if ($LASTEXITCODE -ne 0) {
-        $ErrorMessage = "Running $(em $FilePath ) with $(em $PwshPath ) failed with exit code $(em $LASTEXITCODE)."
-        Write-LogEntry $ErrorMessage -IgnoreActionLevel
-        throw $ErrorMessage
-    }
-
-    Update-PathEnvVar 
-
-}
-#endregion 
+#endregion support functions
 
 Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Force
 
 #region install winget
 if ($null -eq (Get-PackageProvider | ? { ($_.Name -eq 'NuGet') -and ($_.Version -ge $NugetMinVersion) })) {
-    Log "Installing nuget $NugetMinVersion or later..."
+    cLog "Installing nuget $NugetMinVersion or later..."
     Install-PackageProvider -Name 'NuGet' -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force 
-    Log "Installing nuget $NugetMinVersion or later - done!"
+    cLog "Installing nuget $NugetMinVersion or later - done!"
 }
 else {
-    Log "Nuget already installed :)"
+    cLog "Nuget already installed :)"
 }
 
 if ($null -eq (Get-PSRepository | ? SourceLocation -eq 'https://www.powershellgallery.com/api/v2' )) {
-    Log "Registering PS Gallery..."
+    cLog "Registering PS Gallery..."
     Register-PSRepository -Default -Force
-    Log "Registering PS Gallery - done!"
+    cLog "Registering PS Gallery - done!"
 }
 else {
-    Log "PS Gallery already registered :)"
+    cLog "PS Gallery already registered :)"
 }
 
-Log "Installing winget..."
+cLog "Installing winget..."
 Install-Module -Name 'Microsoft.WinGet.Client'  -Repository 'PSGallery' -Force -Scope 'CurrentUser'
 Repair-WingetPackageManager
-Log "Installing winget - done"
+cLog "Installing winget - done"
 #endregion
 
 #region install pave
@@ -191,7 +140,8 @@ Update-PathEnvVar
 $ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
 
 $AdditionalApps | % {
-    $InstallFilePath = Join-Path $ScriptsPath "Install-$_.ps1"
+    $InstallFileName = "Install-$([cultureinfo]::CurrentCulture.TextInfo.ToTitleCase($_)).ps1"
+    $InstallFilePath = Join-Path $ScriptsPath $InstallFileName
     Invoke-Pwsh -File $InstallFilePath 
 }
 
@@ -203,7 +153,6 @@ $Configs.Repos | % {
 
     $Repo.Groups | % {
         $Group = $_
-
         $SharedParams = "-Org '$($Configs.Org)' -Repo '$($Repo.Name)' -Path '$($Group.Path)'"  
         $CommandTextBase = "$ConfigFilePath $SharedParams"
 
