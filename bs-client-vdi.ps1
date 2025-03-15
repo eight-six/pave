@@ -32,7 +32,7 @@ $Configs = @{
                 Call   = 'pwsh', 'code-insiders', 'StorageExplorer', 'node', 'python'
             },
             @{
-                Path      = 'uvm'
+                Path      = 'uwm-vm'
                 DotSource = 'env'
                 Call      = @()
             }

@@ -78,38 +78,7 @@ function prompt {
     '', $Line1, $Line2 -join "`n"
 }
 
-function Invoke-Pwsh {
-    # [CmdletBinding(DefaultParameterSetName = 'WithFile')]
-    param(
 
-        [Parameter(ParameterSetName = 'WithFile', Mandatory, Position=0)]
-        [string]$FilePath,
-        [Parameter(ParameterSetName = 'WithScriptBlock', Mandatory)]
-        [string]$ScriptBlock,
-        [Parameter(ParameterSetName = 'WithCommand', Mandatory)]
-        [string]$Command
-    )
-
-    $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
-
-    if ($ScriptBlock.IsPresent) {
-        & $PwshPath -NoProfile -Command $ScriptBlock 
-    }
-    if ($WithCommand.IsPresent) {
-        & $PwshPath -NoProfile -Command $Command
-    }
-    else {
-        & $PwshPath -NoProfile -File $FilePath 
-    }
-    if ($LASTEXITCODE -ne 0) {
-        $ErrorMessage = "Running $(em $FilePath ) with $(em $PwshPath ) failed with exit code $(em $LASTEXITCODE)."
-        Write-LogEntry $ErrorMessage -IgnoreActionLevel
-        throw $ErrorMessage
-    }
-
-    Update-PathEnvVar 
-
-}
 #endregion 
 
 Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Force

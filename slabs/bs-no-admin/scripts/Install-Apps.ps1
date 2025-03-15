@@ -2,19 +2,66 @@
 #Requires -modules pave-logger
 #Requires -modules pave-utils
 
+[CmdletBinding(SupportsShouldProcess)]
+param(
+    [ValidateSet(
+        'azure-data-studio',
+        'code-insiders',
+        'code',
+        'git',
+        'node',
+        'storage-explorer',
+        'windows-terminal-preview',
+        'windows-terminal')]
+    [string[]]$Apps = @()
+)
+
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 
-$ScriptsFolder = $PSScriptRoot 
-$VsBuildType = 'insider'
-$Heading = 'default apps'
-Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
-Push-LogAction 'installing default apps' -IncrementActionLevel
-& "$ScriptsFolder\Install-GitForWindows.ps1" 
-& "$ScriptsFolder\Install-BsCode.ps1" -BuildType $VsBuildType
-Pop-LogAction
+$AppLookup = @{
+    'azure-data-studio' = 'AzureDataStudio'
+    'code-insiders'     = @{ScriptId = 'BsCode'; Params = @{BuildType = 'insider' } }
+    'code'              = @{ScriptId = 'BsCode'; Params = @{BuildType = 'stable' } }
+    # 'deno'                     = 'Deno'
+    'duckdb'            = 'DuckDB'
+    'git'               = 'GitForWindows'
+    'node'              = 'Node'
+    'storage-explorer'  = 'StorageExplorer'
+    'windows-terminal'  = 'WindowsTerminal'
+}
 
-if($null -eq $MyInvocation.PSCommandPath){
-    $Heading += ' - completed'
-    Write-LogHeader $Heading 
+try {
+    $Heading = 'installing apps'
+    Write-LogHeader "$Heading" -Subheader:($null -ne $MyInvocation.PSCommandPath)
+    
+    $ScriptsFolder = $PSScriptRoot 
+
+    $Apps | % {
+        Push-LogAction "installing $_" -IncrementActionLevel
+
+        $Scripto = $AppLookup[$_]
+        
+        if ($Scripto -is [string]) {
+            if ($PSCmdlet.ShouldProcess("Install-$Scripto.ps1", "call")) {
+                & "$ScriptsFolder\Install-$Scripto.ps1"
+            }
+        }
+        else {
+            if ($PSCmdlet.ShouldProcess("Install-$($Scripto.ScriptId).ps1", "call")) {
+                & "$ScriptsFolder\Install-$($Scripto.ScriptId).ps1" @$Scripto.Params
+            }
+        }
+
+        Pop-LogAction
+    }
+
+    if ($null -eq $MyInvocation.PSCommandPath) {
+        $Heading += ' - completed'
+        Write-LogHeader $Heading 
+    }
+}
+catch {
+    Clear-LogAction
+    throw $_
 }

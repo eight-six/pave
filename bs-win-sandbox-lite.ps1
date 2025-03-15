@@ -35,7 +35,8 @@ repos:
     - windows-terminal
     - git
     - code-insders
-  - Path: uvm
+    - pwsh
+  - Path: sandbox
     Call: []
     DotSource: env
 "@
@@ -56,34 +57,28 @@ function log {
     )
     Write-Information "$(get-date -format 'yyyy-MM-ddTHH:mm:ssZ') $message"
 }
+
+function prompt {        
+    $Role = [System.Security.Principal.WindowsBuiltInRole]::Administrator
+    $IsAdmin = (New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole($role)
+    $Dollar = if ($IsAdmin ) { '♆' } else { 'P$' }
+    $Options = Get-PSReadLineOption
+    $Color = if ($IsAdmin) { $Options.ErrorColor } else { $Options.DefaultTokenColor }
+
+    $Line1 = @(
+        $Options.CommentColor
+        $Pwd.Path.Replace($HOME, '~')
+        $PSStyle.Reset
+    ) -join ''
+
+    $Line2 = "$($Color)$Dollar $($PSStyle.Reset)"
+
+    '', $Line1, $Line2 -join "`n"
+}
+
 #endregion support functions 
 
 Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Force
-
-#region install winget
-if ($null -eq (Get-PackageProvider | ? { ($_.Name -eq 'NuGet') -and ($_.Version -ge $NugetMinVersion) })) {
-    log "Installing nuget $NugetMinVersion or later..."
-    Install-PackageProvider -Name 'NuGet' -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force 
-    log "Installing nuget $NugetMinVersion or later - done!"
-}
-else {
-    log "Nuget already installed :)"
-}
-
-if ($null -eq (Get-PSRepository | ? SourceLocation -eq 'https://www.powershellgallery.com/api/v2' )) {
-    log "Registering PS Gallery..."
-    Register-PSRepository -Default -Force
-    log "Registering PS Gallery - done!"
-}
-else {
-    log "PS Gallery already registered :)"
-}
-
-log "Installing winget..."
-Install-Module -Name 'Microsoft.WinGet.Client'  -Repository 'PSGallery' -Force -Scope 'CurrentUser'
-Repair-WingetPackageManager
-log "Installing winget - done"
-#endregion
 
 #region install pave
 $InstallCachePath = "$HOME\downloads\~pave" 
@@ -132,7 +127,7 @@ Install-Slab reg-tweaks
 #endregion
 
 #region install default apps
-lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION -UseWinget
+lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION -UseWinget -InstallWindowsTerminal -SkipDownloadDotNetLts
 Update-PathEnvVar 
 #endregion
 
@@ -147,30 +142,5 @@ $AdditionalApps | % {
 }
 
 #region apply configs
-$ConfigFilePath = Join-Path $ScriptsPath 'Set-Config.ps1'
-
-$Configs.Repos | % {
-    $Repo = $_
-
-    $Repo.Groups | % {
-        $Group = $_
-        $SharedParams = "-Org '$($Configs.Org)' -Repo '$($Repo.Name)' -Path '$($Group.Path)'"  
-        $CommandTextBase = "$ConfigFilePath $SharedParams"
-
-        if($Group.DotSource.Length -gt 0){
-            $DotSource = ($Group.DotSource | % { "'$_'" } ) -join ', '
-            $CommandText =  "`"$($CommandTextBase + " -DotSource -Include $DotSource")`""
-            Write-Verbose "CommandText: $CommandText" 
-            Invoke-Pwsh -CommandText $CommandText
-        }
-                
-        if($Group.Call.Length -gt 0){
-            $Call = ($Group.Call | % { "'$_'" } ) -join ', '
-            $CommandText =  "`"$($CommandTextBase + " -Include $Call")`""
-            Write-Verbose "CommandText: $CommandText"
-            Invoke-Pwsh -CommandText $CommandText
-        }
-    }
-}
-
+Set-Configs -configs $Configs
 #endregion

@@ -275,7 +275,7 @@ function Uninstall-Slab {
 #     }
 # }
 
-New-Alias -Name 'lay' -Value 'Deploy-Slab'
+Set-Alias -Name 'lay' -Value 'Deploy-Slab'
 
 
 

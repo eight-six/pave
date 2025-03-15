@@ -2,38 +2,59 @@
 #Requires -modules pave-logger
 #Requires -modules pave-utils
 
+[CmdletBinding(SupportsShouldProcess)]
 param(
-    [string[]]$Apps =  @(
-        'Git.Git'
-        'Microsoft.VisualStudioCode.Insiders'
-    )
+    [ValidateSet('az-cli',
+        'azure-data-studio',
+        'code-insiders',
+        'code',
+        'deno',
+        'git',
+        'node',
+        'storage-explorer',
+        'windows-terminal-preview',
+        'windows-terminal')]
+    [string[]]$Apps = @()
 )
 
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $true
-
 $InformationPreference = 'Continue'
 
-try{
-    $Heading = 'installing apps with winget'
+$AppLookup = @{
+    'az-cli'                   = 'Microsoft.AzureCLI'
+    'azure-data-studio'        = 'Microsoft.AzureDataStudio'
+    'code-insiders'            = 'Microsoft.VisualStudioCode.Insiders'
+    'code'                     = 'Microsoft.VisualStudioCode'
+    'deno'                     = 'DenoLand.Deno'
+    'git'                      = 'Git.Git'
+    'node'                     = 'OpenJS.NodeJS'
+    'storage-explorer'         = 'Microsoft.Azure.StorageExplorer'
+    'windows-terminal-preview' = 'Microsoft.WindowsTerminal.Preview'
+    'windows-terminal'         = 'Microsoft.WindowsTerminal'
+}
 
-    Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
-    Push-LogAction 'installing apps' -IncrementActionLevel
-        
+try {
+    $Heading = 'installing apps with winget'
+    Write-LogHeader "$Heading" -Subheader:($null -ne $MyInvocation.PSCommandPath)
+    
     $Apps | % {
-        Push-LogAction "installing $(em $_) (user scope) with winget"
-        winget install --exact $_ --id "$_" --scope user --accept-source-agreements
+        $Id = $AppLookup[$_]
+        Push-LogAction "installing $(em $_) $Id (user scope) with winget"
+        
+        if ($PSCmdlet.ShouldProcess("winget install $Id", "call")) {
+            winget install --exact --id "$Id" --scope user --accept-source-agreements
+        }
+        
         Pop-LogAction
     }
 
-    Pop-LogAction
-
-    if($null -eq $MyInvocation.PSCommandPath){
+    if ($null -eq $MyInvocation.PSCommandPath) {
         $Heading += ' - completed'
         Write-LogHeader $Heading 
     }
 }
-catch{
+catch {
     Clear-LogAction
     throw $_
 }
