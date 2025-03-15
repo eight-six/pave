@@ -124,6 +124,7 @@ function Invoke-Pwsh {
     else {
         & $PwshPath -NoProfile -File $FilePath 
     }
+    
     if ($LASTEXITCODE -ne 0) {
         $ErrorMessage = "Running $(em $FilePath ) with $(em $PwshPath ) failed with exit code $(em $LASTEXITCODE)."
         Write-LogEntry $ErrorMessage -IgnoreActionLevel
