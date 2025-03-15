@@ -35,12 +35,12 @@ $AppLookup = @{
 }
 
 try {
-    $Heading = 'installing apps with winget'
+    $Heading = "$(u 'apps (winget)')"
     Write-LogHeader "$Heading" -Subheader:($null -ne $MyInvocation.PSCommandPath)
     
     $Apps | % {
         $Id = $AppLookup[$_]
-        Push-LogAction "installing $(em $_) $Id (user scope) with winget"
+        Push-LogAction "installing $(em $_) $Id with winget (user scope)" -IncrementActionLevel
         
         if ($PSCmdlet.ShouldProcess("winget install $Id", "call")) {
             winget install --exact --id "$Id" --scope user --accept-source-agreements
@@ -58,3 +58,4 @@ catch {
     Clear-LogAction
     throw $_
 }
+ 

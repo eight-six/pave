@@ -17,7 +17,7 @@ $InformationPreference = 'Continue'
 $PSNativeCommandUseErrorActionPreference = 'true'
 
 #region config
-$NugetMinVersion = '2.8.5.201'
+$Env:PAVE_NUGET_MIN_VERSION = '2.8.5.201'
 $Env:PAVE_PWSH_VERSION = '7.5.0'
 $Env:PAVE_REMOTE = "https://eightsixpaveprodstg.blob.core.windows.net/public/latest-test"
 $Env:PAVE_PY_VERSION = '3.12|3.11' # separate multiple versions with a | - versions are installed left to right, the last one will be the default.
@@ -114,12 +114,11 @@ if (!(Get-Module -ListAvailable 'powershell-yaml')) {
     Install-Module powershell-yaml -Scope 'CurrentUser' -Force
 }
 
-$Configs = $ConfigsConfig | ConvertFrom-Yaml 
+
 
 Import-Module pave-logger
 Import-Module pave-utils
 Import-Module pave
-
 Set-Remote $Env:PAVE_REMOTE
 Install-Slab slab-utils
 Install-Slab bs-no-admin
@@ -127,20 +126,18 @@ Install-Slab reg-tweaks
 #endregion
 
 #region install default apps
-lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION -UseWinget -InstallWindowsTerminal -SkipDownloadDotNetLts
-Update-PathEnvVar 
-#endregion
-
-#region install additional apps
-$ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
-
-$AdditionalApps | % {
-    $InstallFileName = "Install-$([cultureinfo]::CurrentCulture.TextInfo.ToTitleCase($_).Replace('-', '')).ps1"
-    $InstallFilePath = Join-Path $ScriptsPath $InstallFileName
-    Write-Verbose "InstallFilePath: $InstallFilePath"
-    Invoke-Pwsh -File $InstallFilePath 
+$BsParams = @{
+    PwshVersion = $Env:PAVE_PWSH_VERSION
+    UseWinget = $true
+    InstallWindowsTerminal = $true
+    SkipDownloadDotNetLts = $true
+    Apps = $AdditionalApps
 }
 
-#region apply configs
+
+lay bs-no-admin @BsParams
+Update-PathEnvVar 
+#region
+
+$Configs = $ConfigsConfig | ConvertFrom-Yaml 
 Set-Configs -configs $Configs
-#endregion

@@ -9,94 +9,115 @@ $VerbosePreference = 'SilentlyContinue'
 New-Variable -Name 'ENV_VAR_PATH' -Value 'PATH' -Option Constant -Scope 'Script'
 
 function Add-UserEnvVar {
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [string]$Name,
         [string]$Value,
         [switch]$AddToCurrentSession
     )
+    
+    if (-not $PSBoundParameters.ContainsKey('WhatIf')) {
+        $WhatIfPreference = $PSCmdlet.GetVariableValue('WhatIfPreference')
+    }
 
-    [System.Environment]::SetEnvironmentVariable($Name, $Value, [EnvironmentVariableTarget]::User)
+    if ($PSCmdlet.ShouldProcess("$Name", "set user scope env var")) {
+        [System.Environment]::SetEnvironmentVariable($Name, $Value, [EnvironmentVariableTarget]::User)
 
-    if ($AddToCurrentSession.IsPresent) {
-        Set-Item -Path "env:$name" -Value $Value  | Out-Null 
+        if ($AddToCurrentSession.IsPresent) {
+            Set-Item -Path "env:$name" -Value $Value  | Out-Null 
+        }
     }
 }
 
 function Add-UserPath {
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [string]$PathToAdd,
         [switch]$AtStart,
         [switch]$AddToCurrentSession
     )
-	
-    Write-Verbose "PathToAdd = ``$PathToAdd``"
 
-    $UserPaths = [Environment]::GetEnvironmentVariable($Script:ENV_VAR_PATH , [EnvironmentVariableTarget]::User) -split [io.path]::PathSeparator | 
-    ? { ![string]::IsNullOrWhiteSpace($_) } | 
-    select -Unique
+    if (-not $PSBoundParameters.ContainsKey('WhatIf')) {
+        $WhatIfPreference = $PSCmdlet.GetVariableValue('WhatIfPreference')
+    }
 
-    $HasChanged = $false
+    if ($PSCmdlet.ShouldProcess("$PathToAdd", "add user scope path")) {
+        Write-Verbose "PathToAdd = ``$PathToAdd``"
 
-    if ($UserPaths -notcontains $PathToAdd) {
-        $HasChanged = $true
-        if ($AtStart.IsPresent) {
-            $UserPaths = , $PathToAdd + $UserPaths
+        $UserPaths = [Environment]::GetEnvironmentVariable($Script:ENV_VAR_PATH , [EnvironmentVariableTarget]::User) -split [io.path]::PathSeparator | 
+        ? { ![string]::IsNullOrWhiteSpace($_) } | 
+        select -Unique
+
+        $HasChanged = $false
+
+        if ($UserPaths -notcontains $PathToAdd) {
+            $HasChanged = $true
+            if ($AtStart.IsPresent) {
+                $UserPaths = , $PathToAdd + $UserPaths
+            }
+            else {
+                $UserPaths = $UserPaths + $PathToAdd
+            }
         }
         else {
-            $UserPaths = $UserPaths + $PathToAdd
-        }
-    }
-    else {
-        Write-Verbose "UserPaths[0]: ``$($UserPaths[0])``"
-        Write-Verbose "First user path equals path to add: $($UserPaths[0] -eq $PathToAdd)"
+            Write-Verbose "UserPaths[0]: ``$($UserPaths[0])``"
+            Write-Verbose "First user path equals path to add: $($UserPaths[0] -eq $PathToAdd)"
         
-        if ($AtStart.IsPresent -and ($UserPaths[0] -ne $PathToAdd)) {
-            $HasChanged = $true
-            $UserPaths = , $PathToAdd + ($UserPaths | ? { $_ -ne $PathToAdd })
+            if ($AtStart.IsPresent -and ($UserPaths[0] -ne $PathToAdd)) {
+                $HasChanged = $true
+                $UserPaths = , $PathToAdd + ($UserPaths | ? { $_ -ne $PathToAdd })
+            }
         }
-    }
     
-    Write-Verbose "has changed: $HasChanged"
-    Write-Verbose "user path: $($UserPaths -join ';')"
+        Write-Verbose "has changed: $HasChanged"
+        Write-Verbose "user path: $($UserPaths -join ';')"
 
-    if ($HasChanged) {
-        if (!(Test-Path $PathToAdd)) {
-            Write-Warning "Path: $PathToAdd does not exist"
-        }
+        if ($HasChanged) {
+            if (!(Test-Path $PathToAdd)) {
+                Write-Warning "Path: $PathToAdd does not exist"
+            }
 
-        $NewPath = "$($UserPaths -join [IO.Path]::PathSeparator)$([IO.Path]::PathSeparator)"
-        Write-Verbose "new path: ``$NewPath``)"
-        Write-Verbose "target: ``$Script:ENV_VAR_PATH``)"
+            $NewPath = "$($UserPaths -join [IO.Path]::PathSeparator)$([IO.Path]::PathSeparator)"
+            Write-Verbose "new path: ``$NewPath``)"
+            Write-Verbose "target: ``$Script:ENV_VAR_PATH``)"
 
-        Add-UserEnvVar -Name $Script:ENV_VAR_PATH -Value $NewPath
+            Add-UserEnvVar -Name $Script:ENV_VAR_PATH -Value $NewPath
 
-        if ($AddToCurrentSession.IsPresent) {
-            Update-PathEnvVar
+            if ($AddToCurrentSession.IsPresent) {
+                Update-PathEnvVar
+            }
         }
     }
 }
 
 function Get-Download {
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [string]$Uri,
         [string]$FilePath,
         [switch]$NoFallback
     )
 
-
-    try {
-        Start-BitsTransfer $Uri $FilePath
+    if (-not $PSBoundParameters.ContainsKey('WhatIf')) {
+        $WhatIfPreference = $PSCmdlet.GetVariableValue('WhatIfPreference')
     }
-    catch [Runtime.InteropServices.COMException] {
-        Write-LogEntry "Download of $(emph $Uri) failed with $(emph 'Start-BitsTransfer') - error message: $(under $_.Exception.Message)"
-    
-        if ($_.Exception.Message -notmatch 'MUI Entry') {
-            throw $_
+
+    if ($PSCmdlet.ShouldProcess("$Uri -> $FilePath", "download file")) {
+        try {
+            Start-BitsTransfer $Uri $FilePath
         }
-        else {
-            Write-LogEntry "Start-BitsTransfer failed, trying $(emph Invoke-WebRequest)"
-            iwr $Uri -OutFile $FilePath 
-            Write-LogEntry "Download of $(emph $Uri) with $(emph Invoke-WebRequest) succeeded."
+        catch [Runtime.InteropServices.COMException] {
+            Write-LogEntry "Download of $(emph $Uri) failed with $(emph 'Start-BitsTransfer') - error message: $(under $_.Exception.Message)"
+    
+            if ($_.Exception.Message -notmatch 'MUI Entry') {
+                throw $_
+            }
+            
+            if (!$NoFallback.IsPresent) {
+                Write-LogEntry "Start-BitsTransfer failed, trying $(emph Invoke-WebRequest)"
+                iwr $Uri -OutFile $FilePath 
+                Write-LogEntry "Download of $(emph $Uri) with $(emph Invoke-WebRequest) succeeded."
+            }
         }
     }
 }
@@ -140,6 +161,9 @@ function Invoke-Pwsh {
 }
 
 function Update-PathEnvVar {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+    )
     <#
     .SYNOPSIS
     Updates the PATH env var from the latest MACHINE and USER settings
@@ -153,13 +177,16 @@ function Update-PathEnvVar {
     .NOTES
     General notes
     #>
-    $MachinePath = [System.Environment]::GetEnvironmentVariable($Script:ENV_VAR_PATH, [EnvironmentVariableTarget]::Machine)
-    Write-verbose "machine path: $MachinePath"
-    $UserPath = [System.Environment]::GetEnvironmentVariable($Script:ENV_VAR_PATH, [EnvironmentVariableTarget]::User)
-    Write-verbose "user path: $UserPath"
 
-    $Sep = if($MachinePath[-1] -ne '; '){'; '}else{''}
-    $EffectivePath = $MachinePath + $Sep + $UserPath
-    Write-verbose "new effective path: $EffectivePath"
-    Set-Item -Path "env:\$Script:ENV_VAR_PATH" -Value $EffectivePath -force
+    if ($PSCmdlet.ShouldProcess("PATH", "refesh")) {
+        $MachinePath = [System.Environment]::GetEnvironmentVariable($Script:ENV_VAR_PATH, [EnvironmentVariableTarget]::Machine)
+        Write-verbose "machine path: $MachinePath"
+        $UserPath = [System.Environment]::GetEnvironmentVariable($Script:ENV_VAR_PATH, [EnvironmentVariableTarget]::User)
+        Write-verbose "user path: $UserPath"
+
+        $Sep = if ($MachinePath[-1] -ne '; ') { '; ' }else { '' }
+        $EffectivePath = $MachinePath + $Sep + $UserPath
+        Write-verbose "new effective path: $EffectivePath"
+        Set-Item -Path "env:\$Script:ENV_VAR_PATH" -Value $EffectivePath -force
+    }
 }                                                                                                                                                                                                                    

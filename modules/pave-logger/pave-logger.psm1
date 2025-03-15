@@ -98,6 +98,27 @@ function Clear-LogAction {
     $Script:Stack = [collections.stack]::new()
 }
 
+function GetNoColorText {
+    param (
+        [string]$Text
+    )
+    $Text = $Text -replace $EmphStart, '*'
+    $Text = $Text -replace $EmphEnd, '*'
+    $Text = $Text -replace $BoldStart, '**'
+    $Text = $Text -replace $BoldEnd, '**'
+    $Text = $Text -replace $UnderlineStart, '~'
+    $Text = $Text -replace $UnderlineEnd, '~'
+    $Text
+}
+
+function GetNoFormatText {
+    param (
+        [string]$Text
+    )
+    $Text = $Text -replace '</{0,1}\w+>', ''
+    $Text
+}
+
 function Write-LogEntry {
     param (
         [string]$Message,
@@ -107,6 +128,10 @@ function Write-LogEntry {
 
     Write-verbose "message: $Message" #-Verbose
 
+    if($NoColor.IsPresent){
+        $Message = GetNoColorText $Message
+    }
+
     $Message = "$($DefaultStyle)$Message"
 
     if ($Script:ActionLevel -gt 0 -and !$IgnoreActionLevel.IsPresent ) {
@@ -114,16 +139,18 @@ function Write-LogEntry {
     }
 
     if ($LogOptions.timestamp) {
-        $Message = "$($AnsiColor.Reset)$($AnsiColor.Foreground.BrightBlack)$(get-date -Format 'u')$($AnsiColor.Reset) $Message"
+        $Timestamp = get-date -Format 'u'
+    
+        if(!$NoColor.IsPresent){
+            $Timestamp = "$($AnsiColor.Reset)$($AnsiColor.Foreground.BrightBlack)$Timestamp$($AnsiColor.Reset)"
+        }
+            
+        $Message = "$($DefaultStyle)$Timestamp $Message"
     } 
 
     switch ($Script:LogTarget) {
         { $_ -in 'Default', 'Information' } {  
-            if ($NoColor.IsPresent) {
-                $Message = $Message -replace $EmphStart, '*'
-                $Message = $Message -replace $EmphEnd, '*'
-            }
-            else {
+            if (!$NoColor.IsPresent) {
                 $Message = $Message -replace $EmphStart, $EmphStyle
                 $Message = $Message -replace $EmphEnd, $DefaultStyle
                 $Message = $Message -replace $BoldStart, $AnsiColor.Bold
@@ -131,8 +158,9 @@ function Write-LogEntry {
                 $Message = $Message -replace $UnderlineStart, $AnsiColor.Underline
                 $Message = $Message -replace $UnderlineEnd, $AnsiColor.UnderlineOff
                 
-                $Message = "$Message$($AnsiColor.Reset)"
             }
+            
+            $Message = "$Message$($AnsiColor.Reset)"
             Write-verbose "message: $Message" #-Verbose
 
             Write-Information $Message
@@ -225,7 +253,8 @@ function Write-LogHeader {
         [Parameter(ParameterSetName='default')]
         [switch]$Subheader,
         [Parameter(Mandatory,ParameterSetName='SpecificChar')]
-        [string]$HeaderChar 
+        [string]$HeaderChar,
+        [switch]$NoColor
     )
 
     $WindowSize = [Math]::Min($Host.UI.RawUI.WindowSize.Width, $Script:LogOptions.maxLineLength) - 3
@@ -246,9 +275,10 @@ function Write-LogHeader {
         Write-LogEntry "$($HeaderChar * $WindowSize)" -IgnoreActionLevel
     }
     else {   
-        $Pre = [int](($WindowSize - ($Text.Length + 2)) / 2)
-        $Post = $WindowSize - ($Pre + $Text.Length + 2)
-        Write-LogEntry "$($HeaderChar * $Pre) $Text $($HeaderChar * $Post)" -IgnoreActionLevel
+        $TextLength = if($NoColor.IsPresent) {(GetNoColorText $Text).Length } else {(GetNoFormatText $Text).Length}    
+        $Pre = [int](($WindowSize - ($TextLength + 2)) / 2)
+        $Post = $WindowSize - ($Pre + $TextLength + 2)
+        Write-LogEntry "$($HeaderChar * $Pre) $Text $($HeaderChar * $Post)" -IgnoreActionLevel -NoColor:$NoColor
     }
 }
 

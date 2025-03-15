@@ -5,8 +5,10 @@
 
 [CmdletBinding(SupportsShouldProcess)]
 param (
-    [string]$PwshVersion = "7.5.0",
-    [string]$NugetMinVersion = "2.8.5.201",
+    [ValidatePattern('^7\.\d+(\.\d+){0,1}$')]
+    [string]$PwshVersion = $(if ($Env:PAVE_PWSH_VERSION) { $Env:PAVE_PWSH_VERSION }else { '7.5.0' }),
+    [ValidatePattern('^[23].\d.\d.\d{1,3}$')]
+    [string]$NugetMinVersion = $(if ($Env:PAVE_NUGET_MIN_VERSION) { $Env:PAVE_NUGET_MIN_VERSION }else { '2.8.5.201' }),
     [switch]$UseWinget,
     [switch]$InstallWindowsTerminal,
     [ValidateSet(
@@ -32,72 +34,81 @@ try {
     . "$SlabsRoot/slab-utils/slab-utils.ps1"
 
     Write-LogHeader $ThisSlabName
-
     # install pwsh
     $ScriptsFolder = Join-Path $PSScriptRoot 'scripts'
 
-    if ($PSCmdlet.ShouldProcess("pwsh $PwshVersion", "install")) {
-        $PwshResult = & "$ScriptsFolder\Install-Pwsh.ps1" -Version $PwshVersion -SkipDownload:$SkipDownload 
-    }
-    else {
-        $PwshResult = @{PwshPath = 'pwsh' }
-    }
+    $PwshResult = & "$ScriptsFolder\Install-Pwsh.ps1" -Version $PwshVersion -SkipDownload:$SkipDownload 
+
+    $NugetResult = & "$ScriptsFolder\Install-Nuget.ps1" -MinVersion $NugetMinVersion 
 
     # install winget if specified
-    if ($UseWinget.IsPresent -and $PSCmdlet.ShouldProcess("winget", "install")) {
-        $IsWingetAvailable = $null -ne (gcm winget -ErrorAction ignore)
+    if ($UseWinget.IsPresent) {
+        Write-LogHeader -Subheader "$(u 'winget')"
+        $Winget = gcm 'winget' -ErrorAction ignore
 
-        if (!$IsWingetAvailable) {
-            Push-Location "Installing winget"
-            Install-Module -Name 'Microsoft.WinGet.Client'  -Repository 'PSGallery' -Force -Scope 'CurrentUser'
-
-            if ($PSCmdlet.ShouldProcess("Repair-WingetPackageManager", "call")) {
-                Repair-WingetPackageManager
-            }
-            Pop-LogAction
-        }
-    }
-    
-    # install dotnet lts if not skipped
-    if (!$SkipDownloadDotNetLts.IsPresent -and $PSCmdlet.ShouldProcess("DotNet LTS", "install")) {
-        $DotNetScriptFilePath = Join-Path $ScriptsFolder 'Install-DotNetLts.ps1'
-        & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $DotNetScriptFilePath
-
-        if ($LASTEXITCODE -ne 0) {
-            $ErrorMessage = "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.PwshPath) failed with exit code $(em $LASTEXITCODE)."
-            Write-LogEntry $ErrorMessage -IgnoreActionLevel
-            throw $ErrorMessage
-        }
-    }
-
-    # install windows terminal if specified
-    if ( $InstallWindowsTerminal.IsPresent -and $PSCmdlet.ShouldProcess("Windows Terminal", "install")) {
-        .\Install-WindowsTerminal.ps1
-    }
-
-    # install apps with pwsh
-    if ($Apps.Length -gt 0) {
-        # if ($Apps.Length -gt 0 -and $PSCmdlet.ShouldProcess("Apps", "install")){
-        $InstallAppsScript = if ($UseWinget.IsPresent) { 'Install-AppsWinget.ps1' }else { 'Install-Apps.ps1' }
-        $AppScriptsFilePath = Join-Path $ScriptsFolder $InstallAppsScript
-        
-        if ($PSVersionTable.PSEdition -eq 'Core') {
-            & $AppScriptsFilePath -Apps $Apps
+        if ($null -ne 'Winget') {
+            log "winget $(winget --version) already installed"
         }
         else {
-            & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $AppScriptsFilePath -Apps $Apps
+            if ($PSCmdlet.ShouldProcess("winget", "install")) {
+                    Push-Location "Installing winget"
+                    Install-Module -Name 'Microsoft.WinGet.Client'  -Repository 'PSGallery' -Force -Scope 'CurrentUser'
+
+                    if ($PSCmdlet.ShouldProcess("Repair-WingetPackageManager", "call")) {
+                        Repair-WingetPackageManager
+                    }
+         
+                    Pop-LogAction
+                }
+            }
+        }
+    
+        # install dotnet lts if not skipped
+        if (!$SkipDownloadDotNetLts.IsPresent) {
+            $DotNetScriptFilePath = Join-Path $ScriptsFolder 'Install-DotNetLts.ps1'
+
+            if ($PSVersionTable.PSEdition -eq 'Core') {
+                & $DotNetScriptFilePath
+            }
+            else {
+                & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $DotNetScriptFilePath
+
+                if ($LASTEXITCODE -ne 0) {
+                    $ErrorMessage = "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.PwshPath) failed with exit code $(em $LASTEXITCODE)."
+                    Write-LogEntry $ErrorMessage -IgnoreActionLevel
+                    throw $ErrorMessage
+                }
+            }
+        }
+
+        # install windows terminal if specified
+        if ( $InstallWindowsTerminal.IsPresent) {
+            $WindowsTerminalScriptFilePath = Join-Path $ScriptsFolder 'Install-WindowsTerminal.ps1'
+            & $WindowsTerminalScriptFilePath 
+        }
+
+        # install apps with pwsh
+        if ($Apps.Length -gt 0) {
+            $InstallAppsScript = if ($UseWinget.IsPresent) { 'Install-AppsWinget.ps1' }else { 'Install-Apps.ps1' }
+            $AppScriptsFilePath = Join-Path $ScriptsFolder $InstallAppsScript
+        
+            if ($PSVersionTable.PSEdition -eq 'Core') {
+                & $AppScriptsFilePath -Apps $Apps
+            }
+            else {
+                & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $AppScriptsFilePath -Apps $Apps
             
-            if ($LASTEXITCODE -ne 0) {
-                $ErrorMessage = "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.PwshPath) failed with exit code $(em $LASTEXITCODE)."
-                Write-LogEntry $ErrorMessage -IgnoreActionLevel
-                throw $ErrorMessage
+                if ($LASTEXITCODE -ne 0) {
+                    $ErrorMessage = "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.PwshPath) failed with exit code $(em $LASTEXITCODE)."
+                    Write-LogEntry $ErrorMessage -IgnoreActionLevel
+                    throw $ErrorMessage
+                }
             }
         }
     }
-}
-catch {
-    Clear-LogAction
-    throw
-}
+    catch {
+        Clear-LogAction
+        throw
+    }
 
-Write-LogHeader "$ThisSlabName - complete"
+    Write-LogHeader "$ThisSlabName - complete"

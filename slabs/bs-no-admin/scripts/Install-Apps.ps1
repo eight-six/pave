@@ -32,13 +32,13 @@ $AppLookup = @{
 }
 
 try {
-    $Heading = 'installing apps'
+    $Heading = "$(u apps)"
     Write-LogHeader "$Heading" -Subheader:($null -ne $MyInvocation.PSCommandPath)
     
     $ScriptsFolder = $PSScriptRoot 
 
     $Apps | % {
-        Push-LogAction "installing $_" -IncrementActionLevel
+        Push-LogAction "installing $(em $_)" -IncrementActionLevel
 
         $Scripto = $AppLookup[$_]
         
