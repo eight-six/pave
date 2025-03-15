@@ -140,7 +140,7 @@ Update-PathEnvVar
 $ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
 
 $AdditionalApps | % {
-    $InstallFileName = "Install-$([cultureinfo]::CurrentCulture.TextInfo.ToTitleCase($_)).ps1"
+    $InstallFileName = "Install-$([cultureinfo]::CurrentCulture.TextInfo.ToTitleCase($_) -replace '-','').ps1"
     $InstallFilePath = Join-Path $ScriptsPath $InstallFileName
     Invoke-Pwsh -File $InstallFilePath 
 }
