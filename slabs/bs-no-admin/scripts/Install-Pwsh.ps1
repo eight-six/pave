@@ -63,8 +63,8 @@ $InformationPreference = 'Continue'
 
 try {
     $Ret = @{
-        Paths   = @()
-        Env     = @()
+        Paths = @()
+        Env   = @()
     }
 
     $Heading = "$(u pwsh)"
@@ -75,7 +75,8 @@ try {
     }
 
     $InstallerFileName = "PowerShell-$Version-win-x64.zip"
-    $InstallerFilePath = Join-Path $Pwd.Path $InstallerFileName
+    $DownloadPath = if ($Env:PAVE_DOWNLOAD_CACHE) { $Env:PAVE_DOWNLOAD_CACHE }else { $Pwd.Path }
+    $DownloadFilePath = Join-Path $DownloadPath $InstallerFileName
     $DownloadUri = "$DownloadRoot/v$Version/$InstallerFileName"
     $PwshDefaultPath = Join-Path $InstallPath 'pwsh.exe'
     $Ret.PwshPath = $PwshDefaultPath
@@ -84,29 +85,29 @@ try {
         throw "cannot install another instance of pwsh in the same location as the running instance"
     }
 
-    Push-LogAction "installing $(bold "pwsh v$Version")" -IncrementActionLevel
+    Push-LogAction "installing $(b "pwsh v$Version")" -IncrementActionLevel
 
     if (Test-Path $InstallPath) {
-        Push-LogAction "deleting existing installation in $(emph $InstallPath)"
+        Push-LogAction "deleting existing installation in $(em $InstallPath)"
         rm -Path $InstallPath -Recurse -Force
         Pop-LogAction
     }
 
     if ($SkipDownload.IsPresent) {
-        Write-LogEntry "SkipDownload was specified. Required install must exist at $(emph ".\$InstallerFileName")"
+        Write-LogEntry "SkipDownload was specified. Required install must exist at $(em ".\$InstallerFileName")"
     }
     else {
-        Push-LogAction "downloading zip from $(emph $DownloadUri) to $(emph $InstallerFileName)"
-        Get-Download -Uri $DownloadUri -FilePath $InstallerFilePath
+        Push-LogAction "downloading zip from $(em $DownloadUri) to $(em $InstallerFileName)"
+        Get-Download -Uri $DownloadUri -FilePath $DownloadFilePath
         Pop-LogAction
     }
 
     # expand installer
-    Push-LogAction "expanding zip from $(emph $InstallerFileName) to $(emph $InstallPath)"
+    Push-LogAction "expanding zip from $(em $InstallerFileName) to $(em $InstallPath)"
     
     if ($PSCmdlet.ShouldProcess($InstallerFileName, "expand")) {
-        if (!(Test-Path $InstallerFilePath)) {
-            throw "Installer not found at $(emph $InstallerFilePath)"
+        if (!(Test-Path $DownloadFilePath)) {
+            throw "Installer not found at $(em $DownloadFilePath)"
         }
         
         Expand-Archive $InstallerFileName $InstallPath 
@@ -114,7 +115,7 @@ try {
 
     Pop-LogAction
 
-    Push-LogAction "adding $(emph $InstallPath) to path"
+    Push-LogAction "adding $(em $InstallPath) to path"
     Add-UserPath -PathToAdd $InstallPath -AtStart -AddToCurrentSession
     $Ret.Paths += $InstallPath    
     Pop-LogAction

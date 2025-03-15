@@ -67,15 +67,15 @@ function Deploy-Slab {
 
                 $params = $ast.FindAll({ $args[0] -is [Language.ParameterAst] }, $true)
                 
-                Write-Verbose "SlabName: $Script:Cache/$Name/$LayFile" -Verbose
+                Write-Verbose "SlabName: $Script:Cache/$Name/$LayFile" #-Verbose
 
                 $params | ForEach-Object {
                     $param = $_
                     $paramName = $param.Name.VariablePath.UserPath
                     $paramDefaultValue = $param.DefaultValue.Extent.Text
 
-                    Write-Verbose "paramName: $paramName" -Verbose
-                    Write-Verbose "paramDefaultValue: $paramDefaultValue" -Verbose
+                    Write-Verbose "paramName: $paramName" #-Verbose
+                    Write-Verbose "paramDefaultValue: $paramDefaultValue" #-Verbose
 
                     $ParameterAttribute = [ParameterAttribute]@{
                         Mandatory = $false

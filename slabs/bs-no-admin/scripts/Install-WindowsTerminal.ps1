@@ -36,13 +36,15 @@ try {
     else {
         "Microsoft.WindowsTerminal_$($Version)_8wekyb3d8bbwe.msixbundle"
     }
+
     $DownloadUri = "$DownloadRoot/$DownloadFolder/$DownloadName"
+    $DownloadPath = if($Env:PAVE_DOWNLOAD_CACHE){$Env:PAVE_DOWNLOAD_CACHE}else{$Pwd.Path}
+    $DownloadFilePath = Join-Path $DownloadPath $DownloadName
 
     Push-LogAction "Downloading $(em $DownloadName) from $(em $DownloadUri)" 
-    Get-Download $DownloadUri
+    Get-Download $DownloadUri $DownloadPath 
     Pop-LogAction
 
-    $DownloadFilePath = Join-Path $Pwd.Path $DownloadName
 
     if (!$IsWindows10) {
         $PreinstallKitFolder = Join-Path $Pwd.Path 'Windows10_PreinstallKit'

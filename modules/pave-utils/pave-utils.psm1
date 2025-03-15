@@ -93,8 +93,14 @@ function Add-UserPath {
 function Get-Download {
     [CmdletBinding(SupportsShouldProcess)]
     param (
+        [Parameter(Mandatory, Position=0)]
+        [ValidateNotNullOrWhiteSpace()]
         [string]$Uri,
+
+        [Parameter(Mandatory, Position=1)]
+        [ValidateNotNullOrWhiteSpace()]
         [string]$FilePath,
+        
         [switch]$NoFallback
     )
 

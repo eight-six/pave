@@ -63,10 +63,10 @@ Push-LogAction "applying configs from $(em $RepoLocal)"
 
 $ConfigsRoot = "$RepoLocal\configs\$Path"
 $ConfigsToApply = ls $ConfigsRoot  -Directory -Name -Include $Include -Exclude $Exclude
-Write-Verbose "looking for configs in $ConfigsRoot " -Verbose
-Write-Verbose "Including: $( $Include -join ',') " -Verbose
-Write-Verbose "Excluding: $( $Exclude -join ',') " -Verbose
-Write-Verbose "Applying: $($ConfigsToApply  -join ',') " -Verbose
+Write-Verbose "looking for configs in $ConfigsRoot "#-verbose
+Write-Verbose "Including: $( $Include -join ',') "#-verbose
+Write-Verbose "Excluding: $( $Exclude -join ',') "#-verbose
+Write-Verbose "Applying: $($ConfigsToApply  -join ',') "#-verbose
 #region applying each config
 $Comment = if ($DotSource.IsPresent) { "dot sourcing configs" }else { "applying configs" }
 Push-LogAction $Comment

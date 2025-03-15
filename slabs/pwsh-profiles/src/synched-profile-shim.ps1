@@ -2,7 +2,7 @@
 
 # This profile is synced accross devices by OneDrive
 
-Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Verbose
+Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' #-Verbose
 
 # uncomment/amend this to change emph chars in write-* messages
 #$Env:PWSH_EMPH = $Env:PWSH_EMPH ?? '**'
@@ -15,7 +15,7 @@ $ProfileFilePath = $env:BS_PROFILE ?? $DefaultProfileFilePath
 if(!(Test-Path $ProfileFilePath)){
     Write-Warning "Profile $em$($ProfileFilePath)$em not found"
 } else {
-    Write-Verbose "Loading profile from $em$($ProfileFilePath)$em" -Verbose
+    Write-Information "Loading profile from $em$($ProfileFilePath)$em" -InformationAction 'Continue'
 
     . $ProfileFilePath
 }

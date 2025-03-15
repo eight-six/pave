@@ -21,6 +21,7 @@ $Env:PAVE_NUGET_MIN_VERSION = '2.8.5.201'
 $Env:PAVE_PWSH_VERSION = '7.5.0'
 $Env:PAVE_REMOTE = "https://eightsixpaveprodstg.blob.core.windows.net/public/latest-test"
 $Env:PAVE_PY_VERSION = '3.12|3.11' # separate multiple versions with a | - versions are installed left to right, the last one will be the default.
+$Env:PAVE_DOWNLOAD_CACHE = "~\pave\downloads"
 $AdditionalApps = @('windows-terminal')
 
 $ConfigsConfig = @"
@@ -113,8 +114,6 @@ rm $ModuleZipFileName
 if (!(Get-Module -ListAvailable 'powershell-yaml')) {
     Install-Module powershell-yaml -Scope 'CurrentUser' -Force
 }
-
-
 
 Import-Module pave-logger
 Import-Module pave-utils

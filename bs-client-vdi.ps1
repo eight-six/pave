@@ -88,7 +88,7 @@ function Invoke-Pwsh {
     )
  
  
-    Write-Verbose "ParameterSetName: $($PSCmdLet.ParameterSetName)" -verbose
+    Write-Verbose "ParameterSetName: $($PSCmdLet.ParameterSetName)" #-verbose
  
     $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
  

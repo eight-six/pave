@@ -46,12 +46,12 @@ try {
         Write-LogHeader -Subheader "$(u 'winget')"
         $Winget = gcm 'winget' -ErrorAction ignore
 
-        if ($null -ne 'Winget') {
+        if ($null -ne $Winget) {
             log "winget $(winget --version) already installed"
         }
         else {
             if ($PSCmdlet.ShouldProcess("winget", "install")) {
-                    Push-Location "Installing winget"
+                    Push-LogAction "Installing winget"
                     Install-Module -Name 'Microsoft.WinGet.Client'  -Repository 'PSGallery' -Force -Scope 'CurrentUser'
 
                     if ($PSCmdlet.ShouldProcess("Repair-WingetPackageManager", "call")) {
