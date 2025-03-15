@@ -60,7 +60,7 @@ function Add-UserPath {
     Write-Verbose "user path: $($UserPaths -join ';')"
 
     if ($HasChanged) {
-        if(!(Test-Path $PathToAdd)){
+        if (!(Test-Path $PathToAdd)) {
             Write-Warning "Path: $PathToAdd does not exist"
         }
 
@@ -102,27 +102,32 @@ function Get-Download {
 }
 
 function Invoke-Pwsh {
-    [CmdletBinding(DefaultParameterSetName='WithFile')]
+    [CmdletBinding(DefaultParameterSetName = 'WithFile')]
     param(
 
-        [Parameter(ParameterSetName = 'WithFile', Mandatory, Position=0)]
+        [Parameter(ParameterSetName = 'WithFile', Mandatory, Position = 0)]
         [string]$FilePath,
         [Parameter(ParameterSetName = 'WithScriptBlock', Mandatory)]
         [ScriptBlock]$ScriptBlock,
-        [Parameter(ParameterSetName = 'WithCommand', Mandatory)]
+        [Parameter(ParameterSetName = 'WithCommandText', Mandatory)]
         [string]$CommandText
     )
 
     $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
 
-    if ($ScriptBlock.IsPresent) {
-        & $PwshPath -NoProfile -Command $ScriptBlock 
-    }
-    if ($WithCommand.IsPresent) {
-        & $PwshPath -NoProfile -Command $CommandText
-    }
-    else {
-        & $PwshPath -NoProfile -File $FilePath 
+    switch ($PSCmdlet.ParameterSetName) {
+        'WithScriptBlock' { 
+            & $PwshPath -NoProfile -Command $ScriptBlock 
+        }
+        'WithCommandText' { 
+            & $PwshPath -NoProfile -Command $CommandText
+        }
+        'WithFile' { 
+            & $PwshPath -NoProfile -File $FilePath
+        }
+        Default {
+            throw "Unknown parameter set: $($PSCmdlet.ParameterSetName)"
+        }
     }
     
     if ($LASTEXITCODE -ne 0) {
@@ -132,7 +137,6 @@ function Invoke-Pwsh {
     }
 
     Update-PathEnvVar 
-
 }
 
 function Update-PathEnvVar {
@@ -154,7 +158,7 @@ function Update-PathEnvVar {
     $UserPath = [System.Environment]::GetEnvironmentVariable($Script:ENV_VAR_PATH, [EnvironmentVariableTarget]::User)
     Write-verbose "user path: $UserPath"
 
-    $Sep = if($MachinePath[-1] -ne ';'){';'}else{''}
+    $Sep = if($MachinePath[-1] -ne '; '){'; '}else{''}
     $EffectivePath = $MachinePath + $Sep + $UserPath
     Write-verbose "new effective path: $EffectivePath"
     Set-Item -Path "env:\$Script:ENV_VAR_PATH" -Value $EffectivePath -force

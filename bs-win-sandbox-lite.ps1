@@ -50,39 +50,39 @@ if ($null -eq $Env:PAVE_USER_EMAIL ) {
 #endregion config
 
 #region support functions
-function cLog {
+function log {
     param(
         [string] $message
     )
     Write-Information "$(get-date -format 'yyyy-MM-ddTHH:mm:ssZ') $message"
 }
-#endregion support functions
+#endregion support functions 
 
 Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Force
 
 #region install winget
 if ($null -eq (Get-PackageProvider | ? { ($_.Name -eq 'NuGet') -and ($_.Version -ge $NugetMinVersion) })) {
-    cLog "Installing nuget $NugetMinVersion or later..."
+    log "Installing nuget $NugetMinVersion or later..."
     Install-PackageProvider -Name 'NuGet' -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force 
-    cLog "Installing nuget $NugetMinVersion or later - done!"
+    log "Installing nuget $NugetMinVersion or later - done!"
 }
 else {
-    cLog "Nuget already installed :)"
+    log "Nuget already installed :)"
 }
 
 if ($null -eq (Get-PSRepository | ? SourceLocation -eq 'https://www.powershellgallery.com/api/v2' )) {
-    cLog "Registering PS Gallery..."
+    log "Registering PS Gallery..."
     Register-PSRepository -Default -Force
-    cLog "Registering PS Gallery - done!"
+    log "Registering PS Gallery - done!"
 }
 else {
-    cLog "PS Gallery already registered :)"
+    log "PS Gallery already registered :)"
 }
 
-cLog "Installing winget..."
+log "Installing winget..."
 Install-Module -Name 'Microsoft.WinGet.Client'  -Repository 'PSGallery' -Force -Scope 'CurrentUser'
 Repair-WingetPackageManager
-cLog "Installing winget - done"
+log "Installing winget - done"
 #endregion
 
 #region install pave
@@ -140,8 +140,9 @@ Update-PathEnvVar
 $ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
 
 $AdditionalApps | % {
-    $InstallFileName = "Install-$([cultureinfo]::CurrentCulture.TextInfo.ToTitleCase($_) -replace '-','').ps1"
+    $InstallFileName = "Install-$([cultureinfo]::CurrentCulture.TextInfo.ToTitleCase($_).Replace('-', '')).ps1"
     $InstallFilePath = Join-Path $ScriptsPath $InstallFileName
+    Write-Verbose "InstallFilePath: $InstallFilePath"
     Invoke-Pwsh -File $InstallFilePath 
 }
 
@@ -158,13 +159,15 @@ $Configs.Repos | % {
 
         if($Group.DotSource.Length -gt 0){
             $DotSource = ($Group.DotSource | % { "'$_'" } ) -join ', '
-            $CommandText =  $CommandTextBase + " -DotSource -Include $DotSource"
+            $CommandText =  "`"$($CommandTextBase + " -DotSource -Include $DotSource")`""
+            Write-Verbose "CommandText: $CommandText" 
             Invoke-Pwsh -CommandText $CommandText
         }
                 
         if($Group.Call.Length -gt 0){
             $Call = ($Group.Call | % { "'$_'" } ) -join ', '
-            $CommandText = $CommandTextBase + " -Include $Call"
+            $CommandText =  "`"$($CommandTextBase + " -Include $Call")`""
+            Write-Verbose "CommandText: $CommandText"
             Invoke-Pwsh -CommandText $CommandText
         }
     }
