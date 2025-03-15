@@ -6,8 +6,6 @@ param(
     [string[]]$Apps =  @(
         'Git.Git'
         'Microsoft.VisualStudioCode.Insiders'
-        'Microsoft.Azure.StorageExplorer'
-        'Microsoft.AzureDataStudio'
     )
 )
 
@@ -17,12 +15,10 @@ $PSNativeCommandUseErrorActionPreference = $true
 $InformationPreference = 'Continue'
 
 try{
-    $ScriptsFolder = $PSScriptRoot 
-    $VsBuildType = 'insider'
-    $Heading = 'default apps'
+    $Heading = 'installing apps with winget'
 
     Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
-    Push-LogAction 'installing default apps' -IncrementActionLevel
+    Push-LogAction 'installing apps' -IncrementActionLevel
         
     $Apps | % {
         Push-LogAction "installing $(em $_) (user scope) with winget"
