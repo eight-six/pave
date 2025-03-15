@@ -215,7 +215,7 @@ function Install-Slab {
     begin {
         
         if (!(Test-Path $Script:Cache)) {
-            mkdir $Script:Cache
+            mkdir $Script:Cache | Out-Null
         }
     }
 

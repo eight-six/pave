@@ -110,7 +110,7 @@ try {
             throw "Installer not found at $(em $DownloadFilePath)"
         }
         
-        Expand-Archive $InstallerFileName $InstallPath 
+        Expand-Archive $DownloadFilePath $InstallPath 
     }
 
     Pop-LogAction

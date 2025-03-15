@@ -82,10 +82,12 @@ function prompt {
 Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Force
 
 #region install pave
-$InstallCachePath = "$HOME\downloads\~pave" 
+$InstallCachePath = "$HOME\downloads\.pave" 
 
 if (!(Test-Path $InstallCachePath )) {
     md $InstallCachePath | Out-Null
+} else {
+    rm "$InstallCachePath/*" -Recurse -Force
 }
 
 cd $InstallCachePath  
@@ -115,9 +117,9 @@ if (!(Get-Module -ListAvailable 'powershell-yaml')) {
     Install-Module powershell-yaml -Scope 'CurrentUser' -Force
 }
 
-Import-Module pave-logger
-Import-Module pave-utils
-Import-Module pave
+Import-Module pave-logger -Force
+Import-Module pave-utils -Force
+Import-Module pave -Force
 Set-Remote $Env:PAVE_REMOTE
 Install-Slab slab-utils
 Install-Slab bs-no-admin

@@ -94,11 +94,11 @@ function Get-Download {
     [CmdletBinding(SupportsShouldProcess)]
     param (
         [Parameter(Mandatory, Position=0)]
-        [ValidateNotNullOrWhiteSpace()]
+        [ValidateNotNullOrEmpty()]
         [string]$Uri,
 
         [Parameter(Mandatory, Position=1)]
-        [ValidateNotNullOrWhiteSpace()]
+        [ValidateNotNullOrEmpty()]
         [string]$FilePath,
         
         [switch]$NoFallback
@@ -109,6 +109,13 @@ function Get-Download {
     }
 
     if ($PSCmdlet.ShouldProcess("$Uri -> $FilePath", "download file")) {
+
+        $DownloadRoot = Split-Path $FilePath -Parent
+
+        if(!(Test-Path $DownloadRoot)){
+            md $DownloadRoot | Out-Null
+        }
+
         try {
             Start-BitsTransfer $Uri $FilePath
         }
