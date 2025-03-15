@@ -30,7 +30,7 @@ try {
 
     $IsWindows10 = [Environment]::OSVersion.Version.Major -eq 10 -and [Environment]::OSVersion.Version.Build -lt 22000
     $DownloadFolder = "v$Version"
-    $DownloadName = if (!$IsWindows10) {  
+    $DownloadName = if ($IsWindows10) {  
         "Microsoft.WindowsTerminal_$($Version)_8wekyb3d8bbwe.msixbundle_Windows10_PreinstallKit.zip" 
     }
     else {
@@ -38,27 +38,30 @@ try {
     }
 
     $DownloadUri = "$DownloadRoot/$DownloadFolder/$DownloadName"
-    $DownloadPath = if($Env:PAVE_DOWNLOAD_CACHE){$Env:PAVE_DOWNLOAD_CACHE}else{$Pwd.Path}
+    $DownloadPath = if ($Env:PAVE_DOWNLOAD_CACHE) { $Env:PAVE_DOWNLOAD_CACHE }else { $Pwd.Path }
     $DownloadFilePath = Join-Path $DownloadPath $DownloadName
 
     Push-LogAction "Downloading $(em $DownloadName) from $(em $DownloadUri)" 
-    Get-Download $DownloadUri $DownloadPath 
+    Get-Download $DownloadUri $DownloadFilePath 
     Pop-LogAction
 
 
-    if (!$IsWindows10) {
+    if ($IsWindows10) {
         $PreinstallKitFolder = Join-Path $Pwd.Path 'Windows10_PreinstallKit'
 
         if (Test-Path $PreinstallKitFolder ) {
             rm -recurse -force $PreinstallKitFolder
+        }
+        else {
+            md $PreinstallKitFolder | Out-Null
         }
 
         if ($PSCmdlet.ShouldProcess($DownloadName, "expand")) {
             Expand-Archive $DownloadFilePath $PreinstallKitFolder
         }
 
-        $XamlPackage =  "$PreinstallKitFolder/Microsoft.UI.Xaml.2.8_8.2306.22001.0_x64__8wekyb3d8bbwe.appx"
-        $TerminalPackage = "$PreinstallKitFolder/0ef1881c68144b78ad517d9e8e2aab5d.msixbundle"
+        $XamlPackage = ls "$PreinstallKitFolder/Microsoft.UI.Xaml.2.8_8.*.0_x64__8wekyb3d8bbwe.appx"  | select -exp FullName
+        $TerminalPackage = ls "$PreinstallKitFolder/*.msixbundle" | select -exp FullName
 
         $XamlPackage, $TerminalPackage | % {
             if ($PSCmdlet.ShouldProcess($_, "add appx package")) {
