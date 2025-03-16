@@ -93,11 +93,11 @@ function Add-UserPath {
 function Get-Download {
     [CmdletBinding(SupportsShouldProcess)]
     param (
-        [Parameter(Mandatory, Position=0)]
+        [Parameter(Mandatory, Position = 0)]
         [ValidateNotNullOrEmpty()]
         [string]$Uri,
 
-        [Parameter(Mandatory, Position=1)]
+        [Parameter(Mandatory, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string]$FilePath,
         
@@ -112,24 +112,33 @@ function Get-Download {
 
         $DownloadRoot = Split-Path $FilePath -Parent
 
-        if(!(Test-Path $DownloadRoot)){
+        if (!(Test-Path $DownloadRoot)) {
             md $DownloadRoot | Out-Null
-        }
+        } 
+        
+        $DownloadPath = Split-Path (Resolve-Path $FilePath) -Parent
+        $FileName = Split-Path $FilePath -Leaf
 
-        try {
-            Start-BitsTransfer $Uri $FilePath
+        if ($DownloadPath -eq $Env:PAVE_DOWNLOAD_CACHE) {
+            Write-LogEntry "File $FileName already exists in download cache. Use -Force to re-download"
         }
-        catch [Runtime.InteropServices.COMException] {
-            Write-LogEntry "Download of $(emph $Uri) failed with $(emph 'Start-BitsTransfer') - error message: $(under $_.Exception.Message)"
-    
-            if ($_.Exception.Message -notmatch 'MUI Entry') {
-                throw $_
+        else {
+        
+            try {
+                Start-BitsTransfer $Uri $FilePath
             }
+            catch [Runtime.InteropServices.COMException] {
+                Write-LogEntry "Download of $(emph $Uri) failed with $(emph 'Start-BitsTransfer') - error message: $(under $_.Exception.Message)"
+    
+                if ($_.Exception.Message -notmatch 'MUI Entry') {
+                    throw $_
+                }
             
-            if (!$NoFallback.IsPresent) {
-                Write-LogEntry "Start-BitsTransfer failed, trying $(emph Invoke-WebRequest)"
-                iwr $Uri -OutFile $FilePath 
-                Write-LogEntry "Download of $(emph $Uri) with $(emph Invoke-WebRequest) succeeded."
+                if (!$NoFallback.IsPresent) {
+                    Write-LogEntry "Start-BitsTransfer failed, trying $(emph Invoke-WebRequest)"
+                    iwr $Uri -OutFile $FilePath 
+                    Write-LogEntry "Download of $(emph $Uri) with $(emph Invoke-WebRequest) succeeded."
+                }
             }
         }
     }
