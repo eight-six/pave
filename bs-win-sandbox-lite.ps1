@@ -130,7 +130,6 @@ Install-Slab reg-tweaks
 $BsParams = @{
     PwshVersion = $Env:PAVE_PWSH_VERSION
     UseWinget = $true
-    InstallWindowsTerminal = $true
     SkipDownloadDotNetLts = $true
     Apps = $AdditionalApps
 }

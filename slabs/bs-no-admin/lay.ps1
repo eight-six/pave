@@ -10,7 +10,6 @@ param (
     [ValidatePattern('^[23].\d.\d.\d{1,3}$')]
     [string]$NugetMinVersion = $(if ($Env:PAVE_NUGET_MIN_VERSION) { $Env:PAVE_NUGET_MIN_VERSION }else { '2.8.5.201' }),
     [switch]$UseWinget,
-    [switch]$InstallWindowsTerminal,
     [ValidateSet(
         'azure-data-studio',
         'code-insiders',
@@ -18,7 +17,6 @@ param (
         'git',
         'node',
         'storage-explorer',
-        'windows-terminal-preview',
         'windows-terminal')]
     [string[]]$Apps = @(),
     [switch]$SkipDownloadDotNetLts,
@@ -82,11 +80,12 @@ try {
         }
 
         # install windows terminal if specified
-        if ( $InstallWindowsTerminal.IsPresent) {
+        if ( $Apps -contains 'windows-terminal') {
             $WindowsTerminalScriptFilePath = Join-Path $ScriptsFolder 'Install-WindowsTerminal.ps1'
             & $WindowsTerminalScriptFilePath 
+            $Apps = $Apps | ? $_ -ne 'windows-terminal'
         }
-
+        
         # install apps with pwsh
         if ($Apps.Length -gt 0) {
             $InstallAppsScript = if ($UseWinget.IsPresent) { 'Install-AppsWinget.ps1' }else { 'Install-Apps.ps1' }
