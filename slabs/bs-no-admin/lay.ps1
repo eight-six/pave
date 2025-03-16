@@ -49,65 +49,69 @@ try {
         }
         else {
             if ($PSCmdlet.ShouldProcess("winget", "install")) {
-                    Push-LogAction "Installing winget"
-                    Install-Module -Name 'Microsoft.WinGet.Client'  -Repository 'PSGallery' -Force -Scope 'CurrentUser'
+                Push-LogAction "Installing winget"
+                Install-Module -Name 'Microsoft.WinGet.Client'  -Repository 'PSGallery' -Force -Scope 'CurrentUser'
 
-                    if ($PSCmdlet.ShouldProcess("Repair-WingetPackageManager", "call")) {
-                        Repair-WingetPackageManager
-                    }
+                if ($PSCmdlet.ShouldProcess("Repair-WingetPackageManager", "call")) {
+                    Repair-WingetPackageManager
+                }
          
-                    Pop-LogAction
-                }
+                Pop-LogAction
             }
         }
+    }
     
-        # install dotnet lts if not skipped
-        if (!$SkipDownloadDotNetLts.IsPresent) {
-            $DotNetScriptFilePath = Join-Path $ScriptsFolder 'Install-DotNetLts.ps1'
+    # install dotnet lts if not skipped
+    if (!$SkipDownloadDotNetLts.IsPresent) {
+        $DotNetScriptFilePath = Join-Path $ScriptsFolder 'Install-DotNetLts.ps1'
 
-            if ($PSVersionTable.PSEdition -eq 'Core') {
-                & $DotNetScriptFilePath
-            }
-            else {
-                & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $DotNetScriptFilePath
+        if ($PSVersionTable.PSEdition -eq 'Core') {
+            & $DotNetScriptFilePath
+        }
+        else {
+            & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $DotNetScriptFilePath
 
-                if ($LASTEXITCODE -ne 0) {
-                    $ErrorMessage = "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.PwshPath) failed with exit code $(em $LASTEXITCODE)."
-                    Write-LogEntry $ErrorMessage -IgnoreActionLevel
-                    throw $ErrorMessage
-                }
+            if ($LASTEXITCODE -ne 0) {
+                $ErrorMessage = "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.PwshPath) failed with exit code $(em $LASTEXITCODE)."
+                Write-LogEntry $ErrorMessage -IgnoreActionLevel
+                throw $ErrorMessage
             }
         }
+    }
+        
+    [System.Collections.ArrayList]$Apps = [System.Collections.ArrayList]::new($Apps)
+    $InstallWindowsTerminal = $Apps -contains 'windows-terminal'
 
-        # install windows terminal if specified
-        if ( $Apps -contains 'windows-terminal') {
-            $WindowsTerminalScriptFilePath = Join-Path $ScriptsFolder 'Install-WindowsTerminal.ps1'
-            & $WindowsTerminalScriptFilePath 
-            $Apps = $Apps | ? $_ -ne 'windows-terminal'
+    # install windows terminal if specified
+    if ( $InstallWindowsTerminal ) {
+        $WindowsTerminalScriptFilePath = Join-Path $ScriptsFolder 'Install-WindowsTerminal.ps1'
+        & $WindowsTerminalScriptFilePath 
+
+        $Apps.Remove('windows-terminal')
+    }
+        
+    # install apps with pwsh
+    if ($Apps.Length -gt 0) {
+        $InstallAppsScript = if ($UseWinget.IsPresent) { 'Install-AppsWinget.ps1' }else { 'Install-Apps.ps1' }
+        $AppScriptsFilePath = Join-Path $ScriptsFolder $InstallAppsScript
+        
+        if ($PSVersionTable.PSEdition -eq 'Core') {
+            & $AppScriptsFilePath -Apps $Apps
         }
-        
-        # install apps with pwsh
-        if ($Apps.Length -gt 0) {
-            $InstallAppsScript = if ($UseWinget.IsPresent) { 'Install-AppsWinget.ps1' }else { 'Install-Apps.ps1' }
-            $AppScriptsFilePath = Join-Path $ScriptsFolder $InstallAppsScript
-        
-            if ($PSVersionTable.PSEdition -eq 'Core') {
-                & $AppScriptsFilePath -Apps $Apps
-            }
-            else {
-                & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $AppScriptsFilePath -Apps $Apps
+        else {
+            & $PwshResult.PwshPath -WorkingDirectory $PSScriptRoot -NoProfile -File $AppScriptsFilePath -Apps $Apps
             
-                if ($LASTEXITCODE -ne 0) {
-                    $ErrorMessage = "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.PwshPath) failed with exit code $(em $LASTEXITCODE)."
-                    Write-LogEntry $ErrorMessage -IgnoreActionLevel
-                    throw $ErrorMessage
-                }
+            if ($LASTEXITCODE -ne 0) {
+                $ErrorMessage = "Running $(emph $AppScriptsFilePath) with $(emph $PwshResult.PwshPath) failed with exit code $(em $LASTEXITCODE)."
+                Write-LogEntry $ErrorMessage -IgnoreActionLevel
+                throw $ErrorMessage
             }
         }
     }
-    catch {
-        Clear-LogAction
-        throw
-    }
-
+    
     Write-LogHeader "$ThisSlabName - complete"
+}
+catch {
+    Clear-LogAction
+    throw
+}

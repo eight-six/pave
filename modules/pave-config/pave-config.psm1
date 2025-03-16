@@ -1,6 +1,6 @@
 
 
-function Set-Config {
+function Set-Configs {
     param(
         $Configs 
     )

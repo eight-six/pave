@@ -101,6 +101,8 @@ function Get-Download {
         [ValidateNotNullOrEmpty()]
         [string]$FilePath,
         
+        [switch]$Force,
+
         [switch]$NoFallback
     )
 
@@ -109,21 +111,19 @@ function Get-Download {
     }
 
     if ($PSCmdlet.ShouldProcess("$Uri -> $FilePath", "download file")) {
-
         $DownloadRoot = Split-Path $FilePath -Parent
 
         if (!(Test-Path $DownloadRoot)) {
             md $DownloadRoot | Out-Null
         } 
         
-        $DownloadPath = Split-Path (Resolve-Path $FilePath) -Parent
+        $DownloadPath = Resolve-Path (Split-Path $FilePath -Parent) | select -exp Path
         $FileName = Split-Path $FilePath -Leaf
 
-        if ($DownloadPath -eq $Env:PAVE_DOWNLOAD_CACHE) {
-            Write-LogEntry "File $FileName already exists in download cache. Use -Force to re-download"
+        if (-not $Force.IsPresent -and ($DownloadPath -eq (Resolve-Path $Env:PAVE_DOWNLOAD_CACHE)) -and (Test-Path $FilePath)){
+            Write-LogEntry "$($PSStyle.Formatting.Warning)File $(em $FileName) already exists in download cache. Use $(em '-Force') to re-download$($PSStyle.Reset)"
         }
         else {
-        
             try {
                 Start-BitsTransfer $Uri $FilePath
             }
