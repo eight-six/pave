@@ -24,7 +24,7 @@ param (
         'node',
         'storage-explorer',
         'windows-terminal')]
-    [ArrayList]$Apps = @(),
+    [string[]]$Apps = @(),
     
     [switch]$SkipDownloadDotNetLts,
     
@@ -42,7 +42,8 @@ try {
     Write-LogHeader $ThisSlabName
 
     $InstallWindowsTerminal = $Apps -contains 'windows-terminal'
-    $Apps.Remove('windows-terminal')
+    $AppsList = [ArrayList]$Apps
+    $AppsList.Remove('windows-terminal')
 
     # install pwsh
     $ScriptsFolder = Join-Path $PSScriptRoot 'scripts'
@@ -75,7 +76,7 @@ try {
     }
         
     # install apps with pwsh
-    if ($Apps.Length -gt 0) {
+    if ($AppsList.Length -gt 0) {
         $InstallAppsScript = if ($UseWinget.IsPresent) { 'Install-AppsWinget.ps1' }else { 'Install-Apps.ps1' }
         $AppScriptsFilePath = Join-Path $ScriptsFolder $InstallAppsScript
         
@@ -83,7 +84,7 @@ try {
             & $AppScriptsFilePath -Apps $Apps
         }
         else {
-            & Invoke-Pwsh -FilePath $AppScriptsFilePath -Arguments @{Apps = $Apps}
+            & Invoke-Pwsh -FilePath $AppScriptsFilePath -Arguments @{Apps = [string[]]$AppsList}
         }
     }
     
