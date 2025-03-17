@@ -142,4 +142,4 @@ Update-PathEnvVar
 #region
 
 $Configs = $ConfigsConfig | ConvertFrom-Yaml 
-Set-Configs -configs $Configs
+Set-ConfigGroup -configs $Configs
