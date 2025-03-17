@@ -62,7 +62,7 @@ function log {
 function prompt {        
     $Role = [System.Security.Principal.WindowsBuiltInRole]::Administrator
     $IsAdmin = (New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole($role)
-    $Dollar = if ($IsAdmin ) { '♆' } else { 'P$' }
+    $Dollar = if ($IsAdmin ) { '>' } else { 'P$' }
     $Options = Get-PSReadLineOption
     $Color = if ($IsAdmin) { $Options.ErrorColor } else { $Options.DefaultTokenColor }
 
