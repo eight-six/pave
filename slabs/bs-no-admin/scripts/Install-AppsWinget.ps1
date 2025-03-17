@@ -4,7 +4,7 @@
 
 [CmdletBinding(SupportsShouldProcess)]
 param(
-    [ValidateSet('az-cli',
+    [ValidateSet(
         'azure-data-studio',
         'code-insiders',
         'code',
@@ -12,7 +12,6 @@ param(
         'git',
         'node',
         'storage-explorer',
-        'windows-terminal-preview',
         'windows-terminal')]
     [string[]]$Apps = @()
 )
@@ -43,7 +42,14 @@ try {
         Push-LogAction "installing $(em $_) $Id with winget (user scope)" -IncrementActionLevel
         
         if ($PSCmdlet.ShouldProcess("winget install $Id", "call")) {
-            winget install --exact --id "$Id" --scope user --accept-source-agreements
+            $Package =  Get-WinGetPackage -Id $Id
+
+            if($null -eq $Package){
+                #winget install --exact --id "$Id" --scope user -accept-source-agreements
+                $Result = Install-WinGetPackage -Id $Id -Scope 'User' -Mode 'Silent' 
+            } else {
+                $Result = Update-WinGetPackage -Id $Id
+            }
         }
         
         Pop-LogAction
@@ -53,6 +59,8 @@ try {
         $Heading += ' - completed'
         Write-LogHeader $Heading 
     }
+
+    $Result
 }
 catch {
     Clear-LogAction

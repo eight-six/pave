@@ -10,7 +10,11 @@ $PSNativeCommandUseErrorActionPreference = $true
 $InformationPreference = 'Continue'
 
 try {
-    
+    $Ret = @{
+        Paths = @()
+        Env   = @()
+    }
+
     $Heading = Split-Path -Path $PSCommandPath -Leaf # heading can be something more useful than the script name
     Write-LogHeader "$Heading" -Subheader:($null -ne $MyInvocation.PSCommandPath)
 
@@ -20,11 +24,12 @@ try {
         $Heading += ' - completed'
         Write-LogHeader $Heading 
     }
+    
+    $Ret
 }
 catch {
     Clear-LogAction
     throw
 }
 
-Write-LogHeader "$ScriptName - done."
 

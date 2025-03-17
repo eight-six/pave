@@ -1,5 +1,5 @@
-$ModuleName = 'pave-logger'
-$Description =  'Provides logging functions for the pave module'
+$ModuleName = 'pave-config'
+$Description =  'Provides config functions for the pave module'
 
 new-moduleManifest `
  -Path "modules\$ModuleName\$ModuleName.psd1" `

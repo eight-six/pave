@@ -22,7 +22,7 @@ $Env:PAVE_PWSH_VERSION = '7.5.0'
 $Env:PAVE_REMOTE = "https://eightsixpaveprodstg.blob.core.windows.net/public/latest-test"
 $Env:PAVE_PY_VERSION = '3.12|3.11' # separate multiple versions with a | - versions are installed left to right, the last one will be the default.
 $Env:PAVE_DOWNLOAD_CACHE = "~\pave\downloads"
-$AdditionalApps = @('windows-terminal')
+$AdditionalApps = @('windows-terminal', 'git', 'code-insiders')
 
 $ConfigsConfig = @"
 org: stvnrs
@@ -111,6 +111,7 @@ Expand-Archive $ModuleZipFileName
 Expand-Archive './pave-full-v99.99.99/pave-logger-module-v99.99.99.zip' $ModulePath
 Expand-Archive './pave-full-v99.99.99/pave-utils-module-v99.99.99.zip' $ModulePath
 Expand-Archive './pave-full-v99.99.99/pave-module-v99.99.99.zip' $ModulePath
+Expand-Archive './pave-full-v99.99.99/pave-config-v99.99.99.zip' $ModulePath
 rm $ModuleZipFileName 
 
 if (!(Get-Module -ListAvailable 'powershell-yaml')) {
@@ -120,6 +121,7 @@ if (!(Get-Module -ListAvailable 'powershell-yaml')) {
 Import-Module pave-logger -Force
 Import-Module pave-utils -Force
 Import-Module pave -Force
+Import-Module pave-config -Force
 Set-Remote $Env:PAVE_REMOTE
 Install-Slab slab-utils
 Install-Slab bs-no-admin

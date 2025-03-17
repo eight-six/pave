@@ -2,6 +2,7 @@
 #Requires -Modules pave-logger
 
 using namespace System
+using namespace System.Net
 
 $ErrorActionPreference = 'Stop'
 $VerbosePreference = 'SilentlyContinue'
@@ -120,7 +121,7 @@ function Get-Download {
         $DownloadPath = Resolve-Path (Split-Path $FilePath -Parent) | select -exp Path
         $FileName = Split-Path $FilePath -Leaf
 
-        if (-not $Force.IsPresent -and ($DownloadPath -eq (Resolve-Path $Env:PAVE_DOWNLOAD_CACHE)) -and (Test-Path $FilePath)){
+        if (-not $Force.IsPresent -and ($DownloadPath -eq (Resolve-Path $Env:PAVE_DOWNLOAD_CACHE)) -and (Test-Path $FilePath)) {
             Write-LogEntry "$($PSStyle.Formatting.Warning)File $(em $FileName) already exists in download cache. Use $(em '-Force') to re-download$($PSStyle.Reset)"
         }
         else {
@@ -144,17 +145,120 @@ function Get-Download {
     }
 }
 
+function GetArgsString {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, Position = 0)]
+        [hashtable]$Arguments,
+
+        [switch]$NoQoutes
+    )
+
+    $Builder = [Collections.ArrayList]::new()
+
+    $Arguments.GetEnumerator() | % {
+  
+        Write-Verbose "$($_.Value.GetType().Name)" -Verbose
+        $RawValue = $_.Value
+        $TypeName = $RawValue.GetType().Name
+        Write-Verbose $TypeName -Verbose
+        switch ( $TypeName) {
+            'Object[]' {
+                $Value = "`"$(($RawValue -as [string[]])  -Join ',')`""
+                break
+            }
+
+            'String[]' {
+                $Value = "`"$($RawValue  -Join ',')`""
+                break
+            }
+            
+            'DateTime' {
+                $Value = "'$($RawValue.ToUniversalTime().ToString('s'))Z'"
+                break
+            }
+            
+            { $_ -in 'Byte', 'Int16', 'Int32', 'Single', 'Double' } {
+                $Value = $RawValue
+                break
+            }
+
+            'Int64' {
+                $Value = "$($RawValue)l"
+                break
+            }
+
+            'Decimal' {
+                $Value = "$($RawValue)d"
+                break
+            }
+
+            'BigInteger' {
+                $Value = "$($RawValue)n"
+                break
+            }
+
+            Default {
+                Write-Verbose "Default" -Verbose
+                $Value = "'$($RawValue.ToString())'"
+                break
+            }
+        }
+
+        $Builder.Add("-$($_.Key) $Value") | Out-Null
+    }
+
+    $ArgString = $Builder -join ' '
+
+    if (!$NoQoutes.IsPresent) {
+        $ArgString = "`"$ArgString`"" 
+    }
+
+    Write-Verbose $ArgString -Verbose
+
+    $ArgString
+}
+
+function Get-Proxy {
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$TestUri
+    )
+
+    $Ret = $null
+    $Uri = ""
+
+    if (!([Uri]::TryCreate($TestUri, [UriKind]::Absolute, [ref] $Uri))) {
+        throw "TestUri '$TestUri' is not a valid absolute uri."
+    }
+
+    $Proxy = ([System.Net.WebRequest]::GetSystemWebProxy().GetProxy($TestUri))
+
+    if ($null -ne $Proxy -and $Proxy.OriginalString -ne $TestUri) {
+        $Ret = $Proxy.OriginalString
+    }
+
+    $Ret
+}
 function Invoke-Pwsh {
     [CmdletBinding(DefaultParameterSetName = 'WithFile')]
     param(
-
         [Parameter(ParameterSetName = 'WithFile', Mandatory, Position = 0)]
         [string]$FilePath,
+
         [Parameter(ParameterSetName = 'WithScriptBlock', Mandatory)]
         [ScriptBlock]$ScriptBlock,
+
         [Parameter(ParameterSetName = 'WithCommandText', Mandatory)]
-        [string]$CommandText
+        [string]$CommandText,
+
+        [Parameter(ParameterSetName = 'WithFile')]
+        [hashtable]$Arguments 
     )
+
+    Write-Verbose "ParameterSetName: $($PSCmdlet.ParameterSetName)"
+       
 
     $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
 
@@ -166,7 +270,14 @@ function Invoke-Pwsh {
             & $PwshPath -NoProfile -Command $CommandText
         }
         'WithFile' { 
-            & $PwshPath -NoProfile -File $FilePath
+            if ($null -eq $Arguments) {
+                & $PwshPath -NoProfile -File $FilePath 
+            }
+            else {
+                Write-Verbose "ParameterSetName: $($Arguments | ConvertTo-Json -Compress)"
+
+                & $PwshPath -NoProfile -Command $FilePath (GetArgsString $Arguments)
+            }
         }
         Default {
             throw "Unknown parameter set: $($PSCmdlet.ParameterSetName)"
@@ -212,3 +323,31 @@ function Update-PathEnvVar {
         Set-Item -Path "env:\$Script:ENV_VAR_PATH" -Value $EffectivePath -force
     }
 }                                                                                                                                                                                                                    
+
+<#
+    .SYNOPSIS
+    Updates the specifed env var from the latest USER env settings
+    
+    .DESCRIPTION
+    
+    
+    .EXAMPLE
+    
+    
+    .NOTES
+    
+#>
+function Update-UserEnvVar {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory, Position=0)]
+        [string]$Name
+    )
+ 
+    if ($PSCmdlet.ShouldProcess("$Name", "refesh")) {
+        $Value = [System.Environment]::GetEnvironmentVariable($Name, [EnvironmentVariableTarget]::User)
+        Write-verbose "$Name : $Value"
+        
+        Set-Item -Path "env:\$Name" -Value $Value -force
+    }
+} 

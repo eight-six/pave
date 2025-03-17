@@ -32,7 +32,7 @@ $Slabs | ForEach-Object {
 }
 $Index | ConvertTo-Json | Out-File "$BuildDir/slabs/~index"
 
-'pave-logger', 'pave-utils', 'pave' | % {
+'pave-logger', 'pave-utils', 'pave', 'pave-config' | % {
     $ModuleName = $_
     $ModuleFilePath = "$ModuleName-module-v$ModuleVersion.zip"
 
