@@ -111,7 +111,7 @@ Expand-Archive $ModuleZipFileName
 Expand-Archive './pave-full-v99.99.99/pave-logger-module-v99.99.99.zip' $ModulePath
 Expand-Archive './pave-full-v99.99.99/pave-utils-module-v99.99.99.zip' $ModulePath
 Expand-Archive './pave-full-v99.99.99/pave-module-v99.99.99.zip' $ModulePath
-Expand-Archive './pave-full-v99.99.99/pave-config-v99.99.99.zip' $ModulePath
+Expand-Archive './pave-full-v99.99.99/pave-config-module-v99.99.99.zip' $ModulePath
 rm $ModuleZipFileName 
 
 if (!(Get-Module -ListAvailable 'powershell-yaml')) {
