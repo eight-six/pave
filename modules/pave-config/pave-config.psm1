@@ -43,6 +43,8 @@ function Set-Config {
         [string[]]$Exclude,
         [switch]$DotSource,
         [switch]$Test
+        # TODO: Add param for branch
+        # [string]$Branch = 'main'     # use null for defauit branch?
     )
 
     $ErrorActionPreference = 'Stop'
@@ -85,7 +87,13 @@ function Set-Config {
 
     $Uri = "https://github.com/$Org/$Repo"
     Push-LogAction "cloning $(em $uri) into $(em $RepoLocal)"
-    & $GitCmd clone $AdditionalArgs "$Uri" | Out-Null
+
+    # TODO: change to get a detached copy of the repo
+    # $GitCmd init  
+    # $GitCmd remote add origin $Uri
+    # $GitCmd $AdditionalArgs fetch
+    # $GitCmd $AdditionalArgs checkout --detach origin/$Branch
+    & $GitCmd clone $AdditionalArgs "$Uri" --detach | Out-Null
     Pop-LogAction
     #endregion
 
@@ -94,10 +102,10 @@ function Set-Config {
 
     $ConfigsRoot = "$RepoLocal\configs\$Path"
     $ConfigsToApply = ls $ConfigsRoot  -Directory -Name -Include $Include -Exclude $Exclude
-    Write-Verbose "looking for configs in $ConfigsRoot "#-verbose
-    Write-Verbose "Including: $( $Include -join ',') "#-verbose
-    Write-Verbose "Excluding: $( $Exclude -join ',') "#-verbose
-    Write-Verbose "Applying: $($ConfigsToApply  -join ',') "#-verbose
+    Write-Verbose "looking for configs in $ConfigsRoot " #-verbose
+    Write-Verbose "Including: $( $Include -join ',') " #-verbose
+    Write-Verbose "Excluding: $( $Exclude -join ',') " #-verbose
+    Write-Verbose "Applying: $($ConfigsToApply  -join ',') " #-verbose
 
     #region applying each config
     $Comment = if ($DotSource.IsPresent) { "dot sourcing configs" }else { "applying configs" }

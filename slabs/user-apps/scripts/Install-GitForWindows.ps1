@@ -89,7 +89,7 @@ Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
 Push-LogAction "installing $Heading" -IncrementActionLevel
 
 if($null -eq $MyInvocation.PSCommandPath){
-    $Heading += ' - completed'
+    $Heading += " - $(u completed)"
     Write-LogHeader $Heading 
 }
 
@@ -116,6 +116,6 @@ Pop-LogAction
 Pop-LogAction
 
 if($null -eq $MyInvocation.PSCommandPath){
-    $Heading += ' - completed'
+    $Heading += " - $(u completed)"
     Write-LogHeader $Heading 
 }

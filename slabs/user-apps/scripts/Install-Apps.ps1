@@ -57,7 +57,7 @@ try {
     }
 
     if ($null -eq $MyInvocation.PSCommandPath) {
-        $Heading += ' - completed'
+        $Heading += " - $(u completed)"
         Write-LogHeader $Heading 
     }
 }

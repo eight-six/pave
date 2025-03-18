@@ -139,6 +139,6 @@ if ($null -ne $Proxy) {
 Pop-LogAction
 
 if ($null -eq $MyInvocation.PSCommandPath) {
-    $Heading += ' - completed'
+    $Heading += " - $(u completed)"
     Write-LogHeader $Heading 
 }

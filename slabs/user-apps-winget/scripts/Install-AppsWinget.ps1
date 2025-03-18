@@ -39,7 +39,7 @@ try {
     
     $Apps | % {
         $Id = $AppLookup[$_]
-        Push-LogAction "installing $(em $_) $Id with winget (user scope)" -IncrementActionLevel
+        Push-LogAction "installing $(em $_) [$Id] with winget (user scope)" -IncrementActionLevel
         
         if ($PSCmdlet.ShouldProcess("winget install $Id", "call")) {
             $Package =  Get-WinGetPackage -Id $Id
@@ -56,7 +56,7 @@ try {
     }
 
     if ($null -eq $MyInvocation.PSCommandPath) {
-        $Heading += ' - completed'
+        $Heading += " - $(u completed)"
         Write-LogHeader $Heading 
     }
 

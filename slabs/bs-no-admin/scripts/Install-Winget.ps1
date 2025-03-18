@@ -41,11 +41,9 @@ try {
     }
 
     if ($null -eq $MyInvocation.PSCommandPath) {
-        $Heading += ' - completed'
+        $Heading += "" - "$(u 'completed')"
         Write-LogHeader $Heading 
     }
-    
-    Write-LogHeader "$ScriptName - done."
 }
 catch {
     Clear-LogAction

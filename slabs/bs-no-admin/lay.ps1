@@ -54,7 +54,7 @@ try {
 
     # install winget if specified
     if ($UseWinget.IsPresent) {
-       $WingetResult =  & "$ScriptsFolder\Install-Winget.ps1"
+        $WingetResult = & "$ScriptsFolder\Install-Winget.ps1"
     }
     
     # install dotnet lts if not skipped
@@ -77,15 +77,8 @@ try {
         
     # install apps with pwsh
     if ($AppsList.Length -gt 0) {
-        $InstallAppsScript = if ($UseWinget.IsPresent) { 'Install-AppsWinget.ps1' }else { 'Install-Apps.ps1' }
-        $AppScriptsFilePath = Join-Path $ScriptsFolder $InstallAppsScript
-        
-        if ($PSVersionTable.PSEdition -eq 'Core') {
-            & $AppScriptsFilePath -Apps $Apps
-        }
-        else {
-            & Invoke-Pwsh -FilePath $AppScriptsFilePath -Arguments @{Apps = [string[]]$AppsList}
-        }
+        $AppSlab = if ($UseWinget.IsPresent) { 'user-apps-winget' }else { 'user-apps' }
+        lay $AppSlab -Apps $AppsList
     }
     
     Write-LogHeader "$ThisSlabName - complete"

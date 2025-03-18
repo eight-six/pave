@@ -22,8 +22,15 @@ $Env:PAVE_PWSH_VERSION = '7.5.0'
 $Env:PAVE_REMOTE = "https://eightsixpaveprodstg.blob.core.windows.net/public/latest-test"
 $Env:PAVE_PY_VERSION = '3.12|3.11' # separate multiple versions with a | - versions are installed left to right, the last one will be the default.
 $Env:PAVE_DOWNLOAD_CACHE = "~\pave\downloads"
+$Modules = 'pave-logger', 'pave-utils', 'pave', 'pave-config'
+$Slabs = @(
+    'slab-utils'
+    'user-apps'
+    'user-apps-winget'
+    'bs-no-admin'
+    'reg-tweaks'
+)    
 $AdditionalApps = @('windows-terminal', 'git', 'code-insiders')
-
 $ConfigsConfig = @"
 org: stvnrs
 repos:
@@ -86,7 +93,8 @@ $InstallCachePath = "$HOME\downloads\.pave"
 
 if (!(Test-Path $InstallCachePath )) {
     md $InstallCachePath | Out-Null
-} else {
+}
+else {
     rm "$InstallCachePath/*" -Recurse -Force
 }
 
@@ -100,7 +108,7 @@ if (Test-Path $ModuleZipFileName ) {
     rm $ModuleZipFileName | Out-Null
 }
 
-'pave-logger', 'pave-utils', 'pave' | % {
+$Modules | % {
     if (Test-Path "$ModulePath\$_") {
         rm "$ModulePath\$_" -Recurse -Force | Out-Null
     }
@@ -114,26 +122,28 @@ Expand-Archive './pave-full-v99.99.99/pave-module-v99.99.99.zip' $ModulePath
 Expand-Archive './pave-full-v99.99.99/pave-config-module-v99.99.99.zip' $ModulePath
 rm $ModuleZipFileName 
 
+
 if (!(Get-Module -ListAvailable 'powershell-yaml')) {
     Install-Module powershell-yaml -Scope 'CurrentUser' -Force
 }
 
-Import-Module pave-logger -Force
-Import-Module pave-utils -Force
-Import-Module pave -Force
-Import-Module pave-config -Force
+$Modules | % {
+    Import-Module $_ -Force
+}
+
 Set-Remote $Env:PAVE_REMOTE
-Install-Slab slab-utils
-Install-Slab bs-no-admin
-Install-Slab reg-tweaks
+
+$Slabs | % {
+    Install-Slab $_
+}
 #endregion
 
 #region install default apps
 $BsParams = @{
-    PwshVersion = $Env:PAVE_PWSH_VERSION
-    UseWinget = $true
+    PwshVersion           = $Env:PAVE_PWSH_VERSION
+    UseWinget             = $true
     SkipDownloadDotNetLts = $true
-    Apps = $AdditionalApps
+    Apps                  = $AdditionalApps
 }
 
 

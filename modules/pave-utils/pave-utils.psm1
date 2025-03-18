@@ -158,7 +158,7 @@ function GetArgsString {
 
     $Arguments.GetEnumerator() | % {
   
-        Write-Verbose "$($_.Value.GetType().Name)" -Verbose
+        Write-Verbose "$($_.Value.GetType().Name)" #-Verbose
         $RawValue = $_.Value
         $TypeName = $RawValue.GetType().Name
         Write-Verbose $TypeName -Verbose
@@ -199,7 +199,7 @@ function GetArgsString {
             }
 
             Default {
-                Write-Verbose "Default" -Verbose
+                Write-Verbose "Default" #-Verbose
                 $Value = "'$($RawValue.ToString())'"
                 break
             }
@@ -214,7 +214,7 @@ function GetArgsString {
         $ArgString = "`"$ArgString`"" 
     }
 
-    Write-Verbose $ArgString -Verbose
+    Write-Verbose $ArgString #-Verbose
 
     $ArgString
 }
