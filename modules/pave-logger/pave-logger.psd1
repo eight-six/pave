@@ -78,7 +78,7 @@ FunctionsToExport = 'Push-LogAction', 'Get-LogOptions', 'Write-LogSubheader', 'F
 CmdletsToExport = @()
 
 # Variables to export from this module
-# VariablesToExport = @()
+VariablesToExport = 'AnsiColors', 'AnsiEsc'
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
 AliasesToExport = '*'

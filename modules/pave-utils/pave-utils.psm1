@@ -122,7 +122,7 @@ function Get-Download {
         $FileName = Split-Path $FilePath -Leaf
 
         if (-not $Force.IsPresent -and ($DownloadPath -eq (Resolve-Path $Env:PAVE_DOWNLOAD_CACHE)) -and (Test-Path $FilePath)) {
-            Write-LogEntry "$($PSStyle.Formatting.Warning)File $(em $FileName) already exists in download cache. Use $(em '-Force') to re-download$($PSStyle.Reset)"
+            Write-LogEntry "$($AnsiColors.Formatting.Warning)File $(em $FileName) already exists in download cache. Use $(em '-Force') to re-download$($AnsiColors.Reset)"
         }
         else {
             try {

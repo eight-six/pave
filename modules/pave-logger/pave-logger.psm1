@@ -23,54 +23,67 @@ $LogOptions = [ordered]@{
     timestamp             = $true
 }
 
-$ESC = [char]27
+$AnsiEsc = [char]27
 
-$AnsiColor = [ordered]@{
-    Reset        = "$ESC[0m"
-    Bold         = "$ESC[1m"
-    BoldOff      = "$ESC[22m"
-    Underline    = "$ESC[4m"
-    UnderlineOff = "$ESC[24m"
+$AnsiColors = [ordered]@{
+    Reset        = "$AnsiEsc[0m"
+    Bold         = "$AnsiEsc[1m"
+    BoldOff      = "$AnsiEsc[22m"
+    Underline    = "$AnsiEsc[4m"
+    UnderlineOff = "$AnsiEsc[24m"
     Foreground   = @{
-        Black         = "$ESC[30m"
-        BrightBlack   = "$ESC[90m"
-        White         = "$ESC[37m"
-        BrightWhite   = "$ESC[97m"
-        Red           = "$ESC[31m"
-        BrightRed     = "$ESC[91m"
-        Magenta       = "$ESC[35m"
-        BrightMagenta = "$ESC[95m"
-        Blue          = "$ESC[34m"
-        BrightBlue    = "$ESC[94m"
-        Cyan          = "$ESC[36m"
-        BrightCyan    = "$ESC[96m"
-        Green         = "$ESC[32m"
-        BrightGreen   = "$ESC[92m"
-        Yellow        = "$ESC[33m"
-        BrightYellow  = "$ESC[93m"
+        Black         = "$AnsiEsc[30m"
+        BrightBlack   = "$AnsiEsc[90m"
+        White         = "$AnsiEsc[37m"
+        BrightWhite   = "$AnsiEsc[97m"
+        Red           = "$AnsiEsc[31m"
+        BrightRed     = "$AnsiEsc[91m"
+        Magenta       = "$AnsiEsc[35m"
+        BrightMagenta = "$AnsiEsc[95m"
+        Blue          = "$AnsiEsc[34m"
+        BrightBlue    = "$AnsiEsc[94m"
+        Cyan          = "$AnsiEsc[36m"
+        BrightCyan    = "$AnsiEsc[96m"
+        Green         = "$AnsiEsc[32m"
+        BrightGreen   = "$AnsiEsc[92m"
+        Yellow        = "$AnsiEsc[33m"
+        BrightYellow  = "$AnsiEsc[93m"
     }
     Background   = @{
-        Black         = "$ESC[40m"
-        BrightBlack   = "$ESC[100m"
-        White         = "$ESC[47m"
-        BrightWhite   = "$ESC[107m"
-        Red           = "$ESC[41m"
-        BrightRed     = "$ESC[101m"
-        Magenta       = "$ESC[45m"
-        BrightMagenta = "$ESC[105m"
-        Blue          = "$ESC[44m"
-        BrightBlue    = "$ESC[104m"
-        Cyan          = "$ESC[46m"
-        BrightCyan    = "$ESC[106m"
-        Green         = "$ESC[42m"
-        BrightGreen   = "$ESC[102m"
-        Yellow        = "$ESC[43m"
-        BrightYellow  = "$ESC[103m"
+        Black         = "$AnsiEsc[40m"
+        BrightBlack   = "$AnsiEsc[100m"
+        White         = "$AnsiEsc[47m"
+        BrightWhite   = "$AnsiEsc[107m"
+        Red           = "$AnsiEsc[41m"
+        BrightRed     = "$AnsiEsc[101m"
+        Magenta       = "$AnsiEsc[45m"
+        BrightMagenta = "$AnsiEsc[105m"
+        Blue          = "$AnsiEsc[44m"
+        BrightBlue    = "$AnsiEsc[104m"
+        Cyan          = "$AnsiEsc[46m"
+        BrightCyan    = "$AnsiEsc[106m"
+        Green         = "$AnsiEsc[42m"
+        BrightGreen   = "$AnsiEsc[102m"
+        Yellow        = "$AnsiEsc[43m"
+        BrightYellow  = "$AnsiEsc[103m"
+    }
+    Formatting   = @{
+        FormatAccent           = "$AnsiEsc[32;1m"
+        ErrorAccent            = "$AnsiEsc[36;1m"
+        Error                  = "$AnsiEsc[31;1m"
+        Warning                = "$AnsiEsc[35m"
+        Verbose                = "$AnsiEsc[33;1m"
+        Debug                  = "$AnsiEsc[94m"
+        TableHeader            = "$AnsiEsc[32;1m"
+        CustomTableHeaderLabel = "$AnsiEsc[32;1;3m"
+        FeedbackName           = "$AnsiEsc[33m"
+        FeedbackText           = "$AnsiEsc[96m"
+        FeedbackAction         = "$AnsiEsc[97m"
     }
 }
 
-$DefaultStyle = "$($AnsiColor.Reset)$($AnsiColor.Foreground.White)"
-$EmphStyle = "$($AnsiColor.Reset)$($AnsiColor.Foreground.BrightBlue)"
+$DefaultStyle = "$($AnsiColors.Reset)$($AnsiColors.Foreground.White)"
+$EmphStyle = "$($AnsiColors.Reset)$($AnsiColors.Foreground.BrightBlue)"
 
 
 $EmphStart = '<em>'
@@ -128,7 +141,7 @@ function Write-LogEntry {
 
     Write-verbose "message: $Message" #-Verbose
 
-    if($NoColor.IsPresent){
+    if ($NoColor.IsPresent) {
         $Message = GetNoColorText $Message
     }
 
@@ -141,8 +154,8 @@ function Write-LogEntry {
     if ($LogOptions.timestamp) {
         $Timestamp = get-date -Format 'u'
     
-        if(!$NoColor.IsPresent){
-            $Timestamp = "$($AnsiColor.Reset)$($AnsiColor.Foreground.BrightBlack)$Timestamp$($AnsiColor.Reset)"
+        if (!$NoColor.IsPresent) {
+            $Timestamp = "$($AnsiColors.Reset)$($AnsiColors.Foreground.BrightBlack)$Timestamp$($AnsiColors.Reset)"
         }
             
         $Message = "$($DefaultStyle)$Timestamp $Message"
@@ -153,14 +166,14 @@ function Write-LogEntry {
             if (!$NoColor.IsPresent) {
                 $Message = $Message -replace $EmphStart, $EmphStyle
                 $Message = $Message -replace $EmphEnd, $DefaultStyle
-                $Message = $Message -replace $BoldStart, $AnsiColor.Bold
-                $Message = $Message -replace $BoldEnd, $AnsiColor.BoldOff
-                $Message = $Message -replace $UnderlineStart, $AnsiColor.Underline
-                $Message = $Message -replace $UnderlineEnd, $AnsiColor.UnderlineOff
+                $Message = $Message -replace $BoldStart, $AnsiColors.Bold
+                $Message = $Message -replace $BoldEnd, $AnsiColors.BoldOff
+                $Message = $Message -replace $UnderlineStart, $AnsiColors.Underline
+                $Message = $Message -replace $UnderlineEnd, $AnsiColors.UnderlineOff
                 
             }
             
-            $Message = "$Message$($AnsiColor.Reset)"
+            $Message = "$Message$($AnsiColors.Reset)"
             Write-verbose "message: $Message" #-Verbose
 
             Write-Information $Message
@@ -207,7 +220,7 @@ function Pop-LogAction {
         $Item = $Script:Stack.Pop()
         Write-verbose "item $($Item | ConvertTo-Json -Compress)" #-Verbose
             
-        $Tokens = $Item.Text, "$($AnsiColor.Foreground.Green)$($Script:LogOptions.actionCompletedSuffix)$($AnsiColor.Reset)$DefaultStyle"
+        $Tokens = $Item.Text, "$($AnsiColors.Foreground.Green)$($Script:LogOptions.actionCompletedSuffix)$($AnsiColors.Reset)$DefaultStyle"
             
         Write-LogEntry ($Tokens -join ' ') 
             
@@ -247,22 +260,23 @@ function Format-Underline {
 }
 function Write-LogHeader {
     param(
-        [Parameter(ParameterSetName='default', Position = 0)]
-        [Parameter(ParameterSetName='SpecificChar', Position = 0)]
+        [Parameter(ParameterSetName = 'default', Position = 0)]
+        [Parameter(ParameterSetName = 'SpecificChar', Position = 0)]
         [string]$Text,
-        [Parameter(ParameterSetName='default')]
+        [Parameter(ParameterSetName = 'default')]
         [switch]$Subheader,
-        [Parameter(Mandatory,ParameterSetName='SpecificChar')]
+        [Parameter(Mandatory, ParameterSetName = 'SpecificChar')]
         [string]$HeaderChar,
         [switch]$NoColor
     )
 
     $WindowSize = [Math]::Min($Host.UI.RawUI.WindowSize.Width, $Script:LogOptions.maxLineLength) - 3
 
-    if([string]::IsNullOrWhiteSpace($HeaderChar)){
-        $HeaderChar = if ($Subheader.IsPresent){
+    if ([string]::IsNullOrWhiteSpace($HeaderChar)) {
+        $HeaderChar = if ($Subheader.IsPresent) {
             $Script:LogOptions.subHeaderChar
-        } else {
+        }
+        else {
             $Script:LogOptions.headerChar
         }
     }
@@ -275,7 +289,7 @@ function Write-LogHeader {
         Write-LogEntry "$($HeaderChar * $WindowSize)" -IgnoreActionLevel
     }
     else {   
-        $TextLength = if($NoColor.IsPresent) {(GetNoColorText $Text).Length } else {(GetNoFormatText $Text).Length}    
+        $TextLength = if ($NoColor.IsPresent) { (GetNoColorText $Text).Length } else { (GetNoFormatText $Text).Length }    
         $Pre = [int](($WindowSize - ($TextLength + 2)) / 2)
         $Post = $WindowSize - ($Pre + $TextLength + 2)
         Write-LogEntry "$($HeaderChar * $Pre) $Text $($HeaderChar * $Post)" -IgnoreActionLevel -NoColor:$NoColor
@@ -299,7 +313,7 @@ if (Test-Path "$HOME/.pave-logger") {
     $LogOptions = gc -raw "$HOME/.pave-logger" -Encoding 'utf8' | ConvertFrom-Yaml -Ordered
 }
 else {
-    $LogOptions | ConvertTo-Json| Out-File "$HOME/.pave-logger" -Encoding 'utf8'
+    $LogOptions | ConvertTo-Json | Out-File "$HOME/.pave-logger" -Encoding 'utf8'
 }
 
 Set-Alias log Write-LogEntry

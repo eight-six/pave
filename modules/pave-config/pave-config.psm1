@@ -42,9 +42,9 @@ function Set-Config {
         [string[]]$Include,
         [string[]]$Exclude,
         [switch]$DotSource,
-        [switch]$Test
-        # TODO: Add param for branch
-        # [string]$Branch = 'main'     # use null for defauit branch?
+        [switch]$Test,
+        
+        [string]$Branch = 'main'
     )
 
     $ErrorActionPreference = 'Stop'
@@ -87,13 +87,15 @@ function Set-Config {
 
     $Uri = "https://github.com/$Org/$Repo"
     Push-LogAction "cloning $(em $uri) into $(em $RepoLocal)"
+    md $Repo
+    $StackName = (new-guid).Guid.Substring(24,12)
+    pushd $Repo -StackName $StackName
+    & $GitCmd init  
+    & $GitCmd remote add origin $Uri
+    & $GitCmd $AdditionalArgs fetch
+    & $GitCmd $AdditionalArgs checkout --detach origin/$Branch
+    # & $GitCmd clone $AdditionalArgs "$Uri" | Out-Null
 
-    # TODO: change to get a detached copy of the repo
-    # $GitCmd init  
-    # $GitCmd remote add origin $Uri
-    # $GitCmd $AdditionalArgs fetch
-    # $GitCmd $AdditionalArgs checkout --detach origin/$Branch
-    & $GitCmd clone $AdditionalArgs "$Uri" --detach | Out-Null
     Pop-LogAction
     #endregion
 
@@ -132,6 +134,8 @@ function Set-Config {
         Pop-LogAction
         #endregion
     }
+
+    popd $StackName
 
     Pop-LogAction
     #endregion

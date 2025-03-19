@@ -62,9 +62,9 @@ function Deploy-Slab {
 
         if ($PSBoundParameters.ContainsKey('Name')) {
             $SlabName = $PSBoundParameters['Name']
+
             if (Test-Path "$Script:Cache/$SlabName") {
                 $ast = [Language.Parser]::ParseFile("$Script:Cache/$SlabName/$LayFile", [ref]$null, [ref]$null)
-
                 $params = $ast.FindAll({ $args[0] -is [Language.ParameterAst] }, $true)
                 
                 Write-Verbose "SlabName: $Script:Cache/$Name/$LayFile" #-Verbose
@@ -108,8 +108,9 @@ function Deploy-Slab {
             else {
                 throw "Slab $(emph $Name) not found in cache"
             }
-            Write-Verbose "Deploying $(emph $Name) from $Script:Cache/$Name/$LayFile"
 
+            Write-Verbose "Deploying $(emph $Name) from $Script:Cache/$Name/$LayFile"
+            
             & "$Script:Cache/$Name/$LayFile" @SlabParams
         }
     }

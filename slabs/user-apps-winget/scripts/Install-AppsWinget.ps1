@@ -34,7 +34,7 @@ $AppLookup = @{
 }
 
 try {
-    $Heading = "$(u 'apps (winget)')"
+    $Heading = "$(u 'install apps with winget')"
     Write-LogHeader "$Heading" -Subheader:($null -ne $MyInvocation.PSCommandPath)
     
     $Apps | % {

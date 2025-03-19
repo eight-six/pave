@@ -77,8 +77,12 @@ try {
         
     # install apps with pwsh
     if ($AppsList.Length -gt 0) {
-        $AppSlab = if ($UseWinget.IsPresent) { 'user-apps-winget' }else { 'user-apps' }
-        lay $AppSlab -Apps $AppsList
+        if ($UseWinget.IsPresent) { 
+            Deploy $ThisSlabName 'user-apps-winget' @{Apps = $AppsList.ToArray() }
+        }
+        else {
+            Deploy $ThisSlabName 'user-apps' @{Apps = $AppsList.ToArray() }
+        }
     }
     
     Write-LogHeader "$ThisSlabName - complete"

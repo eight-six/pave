@@ -30,7 +30,7 @@ try {
     # install apps with pwsh
     $ScriptsFolder = Join-Path $PSScriptRoot 'scripts'
 
-    if ($AppsList.Length -gt 0) {
+    if ($Apps.Length -gt 0) {
         $InstallAppsScript = 'Install-AppsWinget.ps1'
         $AppScriptsFilePath = Join-Path $ScriptsFolder $InstallAppsScript
         
@@ -38,7 +38,7 @@ try {
             & $AppScriptsFilePath -Apps $Apps
         }
         else {
-            & Invoke-Pwsh -FilePath $AppScriptsFilePath -Arguments @{Apps = -Apps $Apps }
+            & Invoke-Pwsh -FilePath $AppScriptsFilePath -Arguments @{Apps = $Apps }
         }
     }
     

@@ -27,12 +27,13 @@ try {
     $SlabsRoot = (Resolve-Path(Join-Path $PSScriptRoot '..')).Path
     . "$SlabsRoot/slab-utils/slab-utils.ps1"
 
-    Write-LogHeader $ThisSlabName
+    $Heading = "$(apps $ThisSlabName)"
+    Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
 
     # install apps with pwsh
     $ScriptsFolder = Join-Path $PSScriptRoot 'scripts'
 
-    if ($AppsList.Length -gt 0) {
+    if ($Apps.Length -gt 0) {
         $InstallAppsScript = 'Install-Apps.ps1'
         $AppScriptsFilePath = Join-Path $ScriptsFolder $InstallAppsScript
         
@@ -40,11 +41,14 @@ try {
             & $AppScriptsFilePath -Apps $Apps
         }
         else {
-            & Invoke-Pwsh -FilePath $AppScriptsFilePath -Arguments @{Apps = -Apps $Apps }
+            & Invoke-Pwsh -FilePath $AppScriptsFilePath -Arguments @{Apps = $Apps }
         }
     }
     
-    Write-LogHeader "$ThisSlabName - complete"
+    if ($null -eq $MyInvocation.PSCommandPath) {
+        $Heading += " - $(u completed)"
+        Write-LogHeader $Heading 
+    }
 }
 catch {
     Clear-LogAction
