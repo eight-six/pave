@@ -21,7 +21,7 @@ $Env:PAVE_NUGET_MIN_VERSION = '2.8.5.201'
 $Env:PAVE_PWSH_VERSION = '7.5.0'
 $Env:PAVE_REMOTE = "https://eightsixpaveprodstg.blob.core.windows.net/public/latest-test"
 $Env:PAVE_PY_VERSION = '3.12|3.11' # separate multiple versions with a | - versions are installed left to right, the last one will be the default.
-$Env:PAVE_DOWNLOAD_CACHE = "~\pave\downloads"
+$Env:PAVE_DOWNLOAD_CACHE = "$HOME\pave\downloads"
 $Modules = 'pave-logger', 'pave-utils', 'pave', 'pave-config'
 $Slabs = @(
     'slab-utils'
@@ -40,13 +40,14 @@ repos:
     dotSource: 
     - env
     call:
-    - windows-terminal
+    - terminal
     - git
-    - code-insders
+    - code-insiders
     - pwsh
-  - Path: sandbox
-    Call: []
-    DotSource: env
+    - nonsuch
+  - path: sandbox
+    call: []
+    dotSource: env
 "@
     
 if ($null -eq $Env:PAVE_USER_NAME) {
@@ -89,7 +90,7 @@ function prompt {
 Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Force
 
 #region install pave
-$InstallCachePath = "$HOME\downloads\.pave" 
+$InstallCachePath = $Env:PAVE_DOWNLOAD_CACHE
 
 if (!(Test-Path $InstallCachePath )) {
     md $InstallCachePath | Out-Null
