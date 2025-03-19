@@ -37,14 +37,11 @@ repos:
 - name: config
   groups:
   - path: default 
-    dotSource: 
-    - env
+    dotSource: []
     call:
     - terminal
     - git
     - code-insiders
-    - pwsh
-    - nonsuch
   - path: sandbox
     call: []
     dotSource: env

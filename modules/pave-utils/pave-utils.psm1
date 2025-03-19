@@ -161,7 +161,7 @@ function GetArgsString {
         Write-Verbose "$($_.Value.GetType().Name)" #-Verbose
         $RawValue = $_.Value
         $TypeName = $RawValue.GetType().Name
-        Write-Verbose $TypeName -Verbose
+        Write-Verbose $TypeName #-Verbose
         switch ( $TypeName) {
             'Object[]' {
                 $Value = "`"$(($RawValue -as [string[]])  -Join ',')`""
