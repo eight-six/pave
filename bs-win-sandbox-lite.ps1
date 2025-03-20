@@ -36,15 +36,15 @@ org: stvnrs
 repos:
 - name: config
   groups:
+  - path: sandbox
+    call: []
+    dotSource: env
   - path: default 
     dotSource: []
     call:
     - terminal
     - git
     - code-insiders
-  - path: sandbox
-    call: []
-    dotSource: env
 "@
     
 if ($null -eq $Env:PAVE_USER_NAME) {
