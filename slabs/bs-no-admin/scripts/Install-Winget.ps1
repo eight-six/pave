@@ -25,6 +25,13 @@ try {
         $Version = winget --version
         $Ret.Version = $Version
         log "winget $Version already installed"
+
+        if($null -ne (Get-Module -ListAvailable 'Microsoft.WinGet.Client'  )){
+            log "'Microsoft.WinGet.Client' module already installed"
+        }else {
+            log "installing 'Microsoft.WinGet.Client' module"
+            Install-Module -Name 'Microsoft.WinGet.Client'  -Repository 'PSGallery' -Force -Scope 'CurrentUser'
+        }
     }
     else {
         if ($PSCmdlet.ShouldProcess("winget", "install")) {

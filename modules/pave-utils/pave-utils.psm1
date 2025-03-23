@@ -242,7 +242,7 @@ function Get-Proxy {
     $Ret
 }
 function Invoke-Pwsh {
-    [CmdletBinding(DefaultParameterSetName = 'WithFile')]
+    [CmdletBinding(DefaultParameterSetName = 'WithFile', SupportsShouldProcess)]
     param(
         [Parameter(ParameterSetName = 'WithFile', Mandatory, Position = 0)]
         [string]$FilePath,
@@ -254,20 +254,64 @@ function Invoke-Pwsh {
         [string]$CommandText,
 
         [Parameter(ParameterSetName = 'WithFile')]
-        [hashtable]$Arguments 
+        [hashtable]$Arguments,
+
+        [ValidateNotNullOrEmpty()]
+        [string]$PwshFilePath
+        # ,
+
+        # [ValidateNotNullOrEmpty()]
+        # [switch]$NoFallback
+
     )
 
-    Write-Verbose "ParameterSetName: $($PSCmdlet.ParameterSetName)"
-       
+    Write-Verbose "ParameterSetName: $($PSCmdlet.ParameterSetName)" -Verbose
+    Write-Verbose "PSBoundParameters: $($PSBoundParameters.Keys -Join ',')" -Verbose
 
-    $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
+    if ($PSBoundParameters.ContainsKey('PwshFilePath')) {
+        $PwshPath = $PwshFilePath
+
+        if (!(Test-Path $PwshPath)) {
+            throw "pwsh not found at at location specifed by param PwshFilePath - $PwshPath"
+        }
+
+        Write-Verbose "Using param PwshFilePath [$PwshFilePath]" -Verbose
+    } elseif(![string]::IsNullOrEmpty($Env:PWSH_DEFAULT_PATH))  {
+        $PwshPath = $Env:PWSH_DEFAULT_PATH
+
+        if (!(Test-Path $PwshPath)) {
+            throw "pwsh not found at at location specifed by `$env:PWSH_DEFAULT_PATH - $env:PWSH_DEFAULT_PATH"
+        }
+
+        Write-Verbose "Using $Env:PWSH_DEFAULT_PATH [$PwshFilePath]" -Verbose
+
+    } else {
+        $PwshPath = (gcm pwsh -ErrorAction 'Ignore') | select -exp Name
+
+        if ([string]::IsNullOrEmpty($PwshPath)) {
+            throw 'env var PWSH_DEFAULT_PATH not found and no pwsh found on PATH'
+        }
+        $FullPath = (gcm pwsh -ErrorAction 'Ignore') | select -exp Path
+        Write-Verbose "Using pwsh found on PATH [$FullPath]" -Verbose
+    }
+    
+    $Version = & $PwshPath '-V'
+    Write-Verbose "PwshPath: $PwshPath : Version $Version" -Verbose
 
     switch ($PSCmdlet.ParameterSetName) {
         'WithScriptBlock' { 
-            & $PwshPath -NoProfile -Command $ScriptBlock 
+            Write-Verbose "& $PwshPath -NoProfile -Command {$ScriptBlock}" -Verbose
+
+            if ($PSCmdlet.ShouldProcess("scriptblock", "execute")) {
+                & $PwshPath -NoProfile -Command $ScriptBlock
+            } 
         }
-        'WithCommandText' { 
-            & $PwshPath -NoProfile -Command $CommandText
+        'WithCommandText' {
+            Write-Verbose "& $PwshPath -NoProfile -Command $CommandText" -Verbose
+
+            if ($PSCmdlet.ShouldProcess("CommandText", "execute")) {
+                & $PwshPath -NoProfile -Command $CommandText
+            } 
         }
         'WithFile' { 
             if ($null -eq $Arguments) {
@@ -276,7 +320,7 @@ function Invoke-Pwsh {
             else {
                 Write-Verbose "ParameterSetName: $($Arguments | ConvertTo-Json -Compress)"
 
-                & $PwshPath -NoProfile -Command $FilePath (GetArgsString $Arguments)
+                #& $PwshPath -NoProfile -Command $FilePath (GetArgsString $Arguments)
             }
         }
         Default {
@@ -340,7 +384,7 @@ function Update-PathEnvVar {
 function Update-UserEnvVar {
     [CmdletBinding(SupportsShouldProcess)]
     param(
-        [Parameter(Mandatory, Position=0)]
+        [Parameter(Mandatory, Position = 0)]
         [string]$Name
     )
  

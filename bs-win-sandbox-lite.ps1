@@ -85,7 +85,7 @@ function prompt {
 #endregion support functions 
 
 Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Force
-
+$Host.PrivateData.WarningForegroundColor = 'Magenta'
 #region install pave
 $InstallCachePath = $Env:PAVE_DOWNLOAD_CACHE
 
