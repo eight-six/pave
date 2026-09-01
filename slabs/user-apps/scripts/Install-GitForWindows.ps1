@@ -89,7 +89,7 @@ Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
 Push-LogAction "installing $Heading" -IncrementActionLevel
 
 if($null -eq $MyInvocation.PSCommandPath){
-    $Heading += ' - completed'
+    $Heading += " - $(u completed)"
     Write-LogHeader $Heading 
 }
 
@@ -102,21 +102,20 @@ $Revision = $VersionParts[3]
 $DownloadFolder = "v$Major.$Minor.$Build.windows.$Revision"
 $DownloadName = "Git-$Major.$Minor.$Build$($Revision -eq 1 ? '' : ".$Revision")-64-bit.exe"
 $DownloadUri = "$DownloadRoot/$DownloadFolder/$DownloadName"
-$InstallFilePath = Join-Path $PWD.Path $DownloadName
+$DownloadPath = if ($Env:PAVE_DOWNLOAD_CACHE) { $Env:PAVE_DOWNLOAD_CACHE }else { $Pwd.Path }
+$DownloadFilePath = Join-Path $DownloadPath $DownloadName
 
 Push-LogAction "Downloading git $(emph $Version) - $(emph $DownloadUri)"
-Get-Download $DownloadUri $InstallFilePath 
+Get-Download $DownloadUri $DownloadFilePath 
 Pop-LogAction
 
 Push-LogAction  "Installing git $(emph $Version)"
-Start-Process $DownloadName -Wait -ArgumentList ($HideInstaller ? '/VERYSILENT' : '/SILENT')
+Start-Process $DownloadFilePath -Wait -ArgumentList ($HideInstaller ? '/VERYSILENT' : '/SILENT')
 Pop-LogAction
-
-
 
 Pop-LogAction
 
 if($null -eq $MyInvocation.PSCommandPath){
-    $Heading += ' - completed'
+    $Heading += " - $(u completed)"
     Write-LogHeader $Heading 
 }

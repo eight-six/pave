@@ -32,18 +32,18 @@ $Slabs | ForEach-Object {
 }
 $Index | ConvertTo-Json | Out-File "$BuildDir/slabs/~index"
 
-'pave-logger', 'pave-utils', 'pave' | % {
+'pave-logger', 'pave-utils', 'pave', 'pave-config' | % {
     $ModuleName = $_
     $ModuleFilePath = "$ModuleName-module-v$ModuleVersion.zip"
 
     Update-ModuleManifest -Path "$ModuleSourcePath/$ModuleName/$ModuleName.psd1" -ModuleVersion $ModuleVersion 
     Copy-Item "$ModuleSourcePath/$ModuleName/" "$ModuleBuildPath/$ModuleName/" -recurse
-    ipmo "$ModuleBuildPath/$ModuleName/" -Force -verbose
-    Compress-Archive -path "$ModuleBuildPath/$ModuleName/"  -Destination "$BuildDir/$ModuleFilePath" -Force -verbose
+    ipmo "$ModuleBuildPath/$ModuleName/" -Force #-verbose
+    Compress-Archive -path "$ModuleBuildPath/$ModuleName/"  -Destination "$BuildDir/$ModuleFilePath" -Force #-verbose
 }
 
 Remove-Item $ModuleBuildPath -recurse -force
-Compress-Archive -path "$BuildDir/*" -Destination $BundleFilePath -Force -verbose
+Compress-Archive -path "$BuildDir/*" -Destination $BundleFilePath -Force #-verbose
 
 
 

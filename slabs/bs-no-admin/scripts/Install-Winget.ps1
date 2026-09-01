@@ -1,0 +1,60 @@
+#Requires -version 5.1 # Windows Powershell
+#Requires -modules PowershellGet
+#Requires -modules pave-logger
+#Requires -modules pave-utils
+
+param ()
+ 
+$ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $true
+$InformationPreference = 'Continue'
+
+try {
+    $Ret = @{
+        Env   = @()
+        Paths = @()
+        Version = $null
+    }
+    
+    $Heading = "$(u 'winget')"
+    Write-LogHeader "$Heading" -Subheader:($null -ne $MyInvocation.PSCommandPath)
+
+    $Winget = gcm 'winget' -ErrorAction ignore
+
+    if ($null -ne $Winget) {
+        $Version = winget --version
+        $Ret.Version = $Version
+        log "winget $Version already installed"
+
+        if($null -ne (Get-Module -ListAvailable 'Microsoft.WinGet.Client'  )){
+            log "'Microsoft.WinGet.Client' module already installed"
+        }else {
+            log "installing 'Microsoft.WinGet.Client' module"
+            Install-Module -Name 'Microsoft.WinGet.Client'  -Repository 'PSGallery' -Force -Scope 'CurrentUser'
+        }
+    }
+    else {
+        if ($PSCmdlet.ShouldProcess("winget", "install")) {
+            Push-LogAction "Installing winget"
+            Install-Module -Name 'Microsoft.WinGet.Client'  -Repository 'PSGallery' -Force -Scope 'CurrentUser'
+
+            if ($PSCmdlet.ShouldProcess("Repair-WingetPackageManager", "call")) {
+                Repair-WingetPackageManager
+            }
+
+            $Ret.Version = Get-WinGetVersion
+            Pop-LogAction
+        }
+    }
+
+    if ($null -eq $MyInvocation.PSCommandPath) {
+        $Heading += "" - "$(u 'completed')"
+        Write-LogHeader $Heading 
+    }
+}
+catch {
+    Clear-LogAction
+    throw
+}
+
+

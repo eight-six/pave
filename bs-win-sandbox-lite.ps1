@@ -17,27 +17,34 @@ $InformationPreference = 'Continue'
 $PSNativeCommandUseErrorActionPreference = 'true'
 
 #region config
-$NugetMinVersion = '2.8.5.201'
+$Env:PAVE_NUGET_MIN_VERSION = '2.8.5.201'
 $Env:PAVE_PWSH_VERSION = '7.5.0'
 $Env:PAVE_REMOTE = "https://eightsixpaveprodstg.blob.core.windows.net/public/latest-test"
 $Env:PAVE_PY_VERSION = '3.12|3.11' # separate multiple versions with a | - versions are installed left to right, the last one will be the default.
-$AdditionalApps = @('windows-terminal')
-
+$Env:PAVE_DOWNLOAD_CACHE = "$HOME\pave\downloads"
+$Modules = 'pave-logger', 'pave-utils', 'pave', 'pave-config'
+$Slabs = @(
+    'slab-utils'
+    'user-apps'
+    'user-apps-winget'
+    'bs-no-admin'
+    'reg-tweaks'
+)    
+$AdditionalApps = @('windows-terminal', 'git', 'code-insiders')
 $ConfigsConfig = @"
 org: stvnrs
 repos:
 - name: config
   groups:
+  - path: sandbox
+    call: []
+    dotSource: env
   - path: default 
-    dotSource: 
-    - env
+    dotSource: []
     call:
-    - windows-terminal
+    - terminal
     - git
-    - code-insders
-  - Path: uvm
-    Call: []
-    DotSource: env
+    - code-insiders
 "@
     
 if ($null -eq $Env:PAVE_USER_NAME) {
@@ -50,46 +57,43 @@ if ($null -eq $Env:PAVE_USER_EMAIL ) {
 #endregion config
 
 #region support functions
-function cLog {
+function log {
     param(
         [string] $message
     )
     Write-Information "$(get-date -format 'yyyy-MM-ddTHH:mm:ssZ') $message"
 }
-#endregion support functions
+
+function prompt {        
+    $Role = [System.Security.Principal.WindowsBuiltInRole]::Administrator
+    $IsAdmin = (New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole($role)
+    $Dollar = if ($IsAdmin ) { '>' } else { 'P$' }
+    $Options = Get-PSReadLineOption
+    $Color = if ($IsAdmin) { $Options.ErrorColor } else { $Options.DefaultTokenColor }
+
+    $Line1 = @(
+        $Options.CommentColor
+        $Pwd.Path.Replace($HOME, '~')
+        $PSStyle.Reset
+    ) -join ''
+
+    $Line2 = "$($Color)$Dollar $($PSStyle.Reset)"
+
+    '', $Line1, $Line2 -join "`n"
+}
+
+#endregion support functions 
 
 Set-ExecutionPolicy -ExecutionPolicy 'RemoteSigned' -Scope 'CurrentUser' -Force
-
-#region install winget
-if ($null -eq (Get-PackageProvider | ? { ($_.Name -eq 'NuGet') -and ($_.Version -ge $NugetMinVersion) })) {
-    cLog "Installing nuget $NugetMinVersion or later..."
-    Install-PackageProvider -Name 'NuGet' -MinimumVersion $NugetMinVersion -Scope 'CurrentUser' -Force 
-    cLog "Installing nuget $NugetMinVersion or later - done!"
-}
-else {
-    cLog "Nuget already installed :)"
-}
-
-if ($null -eq (Get-PSRepository | ? SourceLocation -eq 'https://www.powershellgallery.com/api/v2' )) {
-    cLog "Registering PS Gallery..."
-    Register-PSRepository -Default -Force
-    cLog "Registering PS Gallery - done!"
-}
-else {
-    cLog "PS Gallery already registered :)"
-}
-
-cLog "Installing winget..."
-Install-Module -Name 'Microsoft.WinGet.Client'  -Repository 'PSGallery' -Force -Scope 'CurrentUser'
-Repair-WingetPackageManager
-cLog "Installing winget - done"
-#endregion
-
+$Host.PrivateData.WarningForegroundColor = 'Magenta'
 #region install pave
-$InstallCachePath = "$HOME\downloads\~pave" 
+$InstallCachePath = $Env:PAVE_DOWNLOAD_CACHE
 
 if (!(Test-Path $InstallCachePath )) {
     md $InstallCachePath | Out-Null
+}
+else {
+    rm "$InstallCachePath/*" -Recurse -Force
 }
 
 cd $InstallCachePath  
@@ -102,7 +106,7 @@ if (Test-Path $ModuleZipFileName ) {
     rm $ModuleZipFileName | Out-Null
 }
 
-'pave-logger', 'pave-utils', 'pave' | % {
+$Modules | % {
     if (Test-Path "$ModulePath\$_") {
         rm "$ModulePath\$_" -Recurse -Force | Out-Null
     }
@@ -113,61 +117,37 @@ Expand-Archive $ModuleZipFileName
 Expand-Archive './pave-full-v99.99.99/pave-logger-module-v99.99.99.zip' $ModulePath
 Expand-Archive './pave-full-v99.99.99/pave-utils-module-v99.99.99.zip' $ModulePath
 Expand-Archive './pave-full-v99.99.99/pave-module-v99.99.99.zip' $ModulePath
+Expand-Archive './pave-full-v99.99.99/pave-config-module-v99.99.99.zip' $ModulePath
 rm $ModuleZipFileName 
+
 
 if (!(Get-Module -ListAvailable 'powershell-yaml')) {
     Install-Module powershell-yaml -Scope 'CurrentUser' -Force
 }
 
-$Configs = $ConfigsConfig | ConvertFrom-Yaml 
-
-Import-Module pave-logger
-Import-Module pave-utils
-Import-Module pave
+$Modules | % {
+    Import-Module $_ -Force
+}
 
 Set-Remote $Env:PAVE_REMOTE
-Install-Slab slab-utils
-Install-Slab bs-no-admin
-Install-Slab reg-tweaks
+
+$Slabs | % {
+    Install-Slab $_
+}
 #endregion
 
 #region install default apps
-lay bs-no-admin -PwshVersion $Env:PAVE_PWSH_VERSION -UseWinget
+$BsParams = @{
+    PwshVersion           = $Env:PAVE_PWSH_VERSION
+    UseWinget             = $true
+    SkipDownloadDotNetLts = $true
+    Apps                  = $AdditionalApps
+}
+
+
+lay bs-no-admin @BsParams
 Update-PathEnvVar 
-#endregion
+#region
 
-#region install additional apps
-$ScriptsPath = "$(Get-Cache)\bs-no-admin\scripts"
-
-$AdditionalApps | % {
-    $InstallFileName = "Install-$([cultureinfo]::CurrentCulture.TextInfo.ToTitleCase($_)).ps1"
-    $InstallFilePath = Join-Path $ScriptsPath $InstallFileName
-    Invoke-Pwsh -File $InstallFilePath 
-}
-
-#region apply configs
-$ConfigFilePath = Join-Path $ScriptsPath 'Set-Config.ps1'
-
-$Configs.Repos | % {
-    $Repo = $_
-
-    $Repo.Groups | % {
-        $Group = $_
-        $SharedParams = "-Org '$($Configs.Org)' -Repo '$($Repo.Name)' -Path '$($Group.Path)'"  
-        $CommandTextBase = "$ConfigFilePath $SharedParams"
-
-        if($Group.DotSource.Length -gt 0){
-            $DotSource = ($Group.DotSource | % { "'$_'" } ) -join ', '
-            $CommandText =  $CommandTextBase + " -DotSource -Include $DotSource"
-            Invoke-Pwsh -CommandText $CommandText
-        }
-                
-        if($Group.Call.Length -gt 0){
-            $Call = ($Group.Call | % { "'$_'" } ) -join ', '
-            $CommandText = $CommandTextBase + " -Include $Call"
-            Invoke-Pwsh -CommandText $CommandText
-        }
-    }
-}
-
-#endregion
+$Configs = $ConfigsConfig | ConvertFrom-Yaml 
+Set-ConfigGroup -configs $Configs

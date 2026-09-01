@@ -62,20 +62,20 @@ function Deploy-Slab {
 
         if ($PSBoundParameters.ContainsKey('Name')) {
             $SlabName = $PSBoundParameters['Name']
+
             if (Test-Path "$Script:Cache/$SlabName") {
                 $ast = [Language.Parser]::ParseFile("$Script:Cache/$SlabName/$LayFile", [ref]$null, [ref]$null)
-
                 $params = $ast.FindAll({ $args[0] -is [Language.ParameterAst] }, $true)
                 
-                Write-Verbose "SlabName: $Script:Cache/$Name/$LayFile" -Verbose
+                Write-Verbose "SlabName: $Script:Cache/$Name/$LayFile" #-Verbose
 
                 $params | ForEach-Object {
                     $param = $_
                     $paramName = $param.Name.VariablePath.UserPath
                     $paramDefaultValue = $param.DefaultValue.Extent.Text
 
-                    Write-Verbose "paramName: $paramName" -Verbose
-                    Write-Verbose "paramDefaultValue: $paramDefaultValue" -Verbose
+                    Write-Verbose "paramName: $paramName" #-Verbose
+                    Write-Verbose "paramDefaultValue: $paramDefaultValue" #-Verbose
 
                     $ParameterAttribute = [ParameterAttribute]@{
                         Mandatory = $false
@@ -108,8 +108,9 @@ function Deploy-Slab {
             else {
                 throw "Slab $(emph $Name) not found in cache"
             }
-            Write-Verbose "Deploying $(emph $Name) from $Script:Cache/$Name/$LayFile"
 
+            Write-Verbose "Deploying $(emph $Name) from $Script:Cache/$Name/$LayFile"
+            
             & "$Script:Cache/$Name/$LayFile" @SlabParams
         }
     }
@@ -215,7 +216,7 @@ function Install-Slab {
     begin {
         
         if (!(Test-Path $Script:Cache)) {
-            mkdir $Script:Cache
+            mkdir $Script:Cache | Out-Null
         }
     }
 
@@ -275,7 +276,7 @@ function Uninstall-Slab {
 #     }
 # }
 
-New-Alias -Name 'lay' -Value 'Deploy-Slab'
+Set-Alias -Name 'lay' -Value 'Deploy-Slab'
 
 
 

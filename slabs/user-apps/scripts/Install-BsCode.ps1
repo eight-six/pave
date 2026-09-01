@@ -38,16 +38,18 @@
  Installs specified version of VS Code 
 
 #> 
-#Requires -PSEdition Core
+#Requires -Version 5.1
+#Requires -modules pave-logger
+#Requires -modules pave-utils
 
 Param(
-    [Parameter(ParameterSetName='Default')]
-    [ValidateSet('insider','stable')]
+    [Parameter(ParameterSetName = 'Default')]
+    [ValidateSet('insider', 'stable')]
     [string]$BuildType, 
-    [Parameter(ParameterSetName='Default')]
-    [Parameter(ParameterSetName='UsingPSGallery')]
+    [Parameter(ParameterSetName = 'Default')]
+    [Parameter(ParameterSetName = 'UsingPSGallery')]
     [switch]$UsePSGallery,
-    [Parameter(ParameterSetName='UsingPSGallery')]
+    [Parameter(ParameterSetName = 'UsingPSGallery')]
     [string[]]$VsCodeExtensions
 )
 
@@ -62,8 +64,8 @@ $Heading = "VS Code"
 Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
 Push-LogAction "installing VS Code (64-bit $BuildType)" -IncrementActionLevel
 
-if($UsePSGallery.IsPresent){
-    if(!((Get-PSRepository).Name -contains 'PSGallery')){
+if ($UsePSGallery.IsPresent) {
+    if (!((Get-PSRepository).Name -contains 'PSGallery')) {
         throw "Repository PSGallery not registered."
     }
 
@@ -71,27 +73,28 @@ if($UsePSGallery.IsPresent){
     $BuildEdition = "$BuildType-User"
     # seems to be some delay before the script is available on some systems - maybe antimalware
     sleep -seconds 10       
-     $Params = @{
-	Architecture = '64-bit' 
-       BuildEdition = $BuildEdition 
-     }
+    $Params = @{
+        Architecture = '64-bit' 
+        BuildEdition = $BuildEdition 
+    }
    
-    if($null -ne $VsCodeExtensions){
-       $Params.AdditionalExtensions = $VsCodeExtensions
-     }
+    if ($null -ne $VsCodeExtensions) {
+        $Params.AdditionalExtensions = $VsCodeExtensions
+    }
     .\Install-VSCode.ps1 @Params
-} else {
-    $VsCodeUri = "https://update.code.visualstudio.com/latest/win32-x64-user/$BuildType"
-    Write-Verbose "$VsCodeUri"
-    $VsSetupExe = ".\vscode-win32-x64-user-$BuildType-setup.exe"
-    Get-Download $VsCodeUri $VsSetupExe
-    Start-Process $VsSetupExe -Wait -ArgumentList "/silent /MERGETASKS=!runcode"    
+}
+else {
+    $DownloadUri = "https://update.code.visualstudio.com/latest/win32-x64-user/$BuildType"
+    $DownloadPath = if ($Env:PAVE_DOWNLOAD_CACHE) { $Env:PAVE_DOWNLOAD_CACHE }else { $Pwd.Path }
+    $DownloadFilePath = Join-Path $DownloadPath 'dotnet-install.ps1' 
+    Get-Download $DownloadUri $DownloadFilePath 
+    Start-Process $DownloadFilePath -Wait -ArgumentList "/silent /MERGETASKS=!runcode"    
 }
 
 Pop-LogAction
 
-if($null -eq $MyInvocation.PSCommandPath){
-    $Heading += ' - completed'
+if ($null -eq $MyInvocation.PSCommandPath) {
+    $Heading += " - $(u completed)"
     Write-LogHeader $Heading 
 }
 

@@ -49,10 +49,10 @@
 #Requires -modules pave-logger
 #Requires -modules pave-utils
 
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess)]
 param (
     [ValidatePattern('^7\.\d+(\.\d+){0,1}$')]
-    [string]$Version = '7.5.0',
+    [string]$Version = $(if ($Env:PAVE_PWSH_VERSION) { $Env:PAVE_PWSH_VERSION }else { '7.5.0' }),
     [string]$InstallPath = "$env:LOCALAPPDATA\powershell\$Version",
     [string]$DownloadRoot = 'https://github.com/PowerShell/PowerShell/releases/download',
     [switch]$SkipDownload
@@ -62,66 +62,80 @@ $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 
 try {
-    
-    if ($InstallPath -eq (Split-Path -Parent ([Environment]::GetCommandLineArgs()[0]) )) {
-        throw "cannot install another instance of pwsh in the same location as the running instance"
+    $Ret = @{
+        Paths = @()
+        Env   = @()
     }
-    
-    $Heading = 'pwsh'
-    Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
 
-    if($Version -match '^7\.\d+$'){
+    $Heading = "$(u pwsh)"
+    Write-LogHeader $Heading -Subheader:($null -ne $MyInvocation.PSCommandPath)
+    
+    if ($Version -match '^7\.\d+$') {
         $Version = "$Version.0"
     }
 
-    Push-LogAction "installing $(bold "pwsh v$Version")" -IncrementActionLevel
-
     $InstallerFileName = "PowerShell-$Version-win-x64.zip"
+    $DownloadPath = if ($Env:PAVE_DOWNLOAD_CACHE) { $Env:PAVE_DOWNLOAD_CACHE }else { $Pwd.Path }
+    $DownloadFilePath = Join-Path $DownloadPath $InstallerFileName
     $DownloadUri = "$DownloadRoot/v$Version/$InstallerFileName"
+    $PwshDefaultPath = Join-Path $InstallPath 'pwsh.exe'
+    $Ret.PwshPath = $PwshDefaultPath
+
+    if ($InstallPath -eq (Split-Path -Parent ([Environment]::GetCommandLineArgs()[0]) )) {
+        throw "cannot install another instance of pwsh in the same location as the running instance"
+    }
+
+    Push-LogAction "installing $(b "pwsh v$Version")" -IncrementActionLevel
 
     if (Test-Path $InstallPath) {
-        Push-LogAction "deleting existing installation in $(emph $InstallPath)"
+        Push-LogAction "deleting existing installation in $(em $InstallPath)"
         rm -Path $InstallPath -Recurse -Force
         Pop-LogAction
     }
 
     if ($SkipDownload.IsPresent) {
-        Write-LogEntry "SkipDownload was specified. Required install must exist at $(emph ".\$InstallerFileName")"
+        Write-LogEntry "SkipDownload was specified. Required install must exist at $(em ".\$InstallerFileName")"
     }
     else {
-        Push-LogAction "downloading zip from $(emph $DownloadUri) to $(emph $InstallerFileName)"
-        Get-Download -Uri $DownloadUri -FilePath $InstallerFileName
+        Push-LogAction "downloading zip from $(em $DownloadUri) to $(em $InstallerFileName)"
+        Get-Download -Uri $DownloadUri -FilePath $DownloadFilePath
         Pop-LogAction
     }
 
     # expand installer
-    Push-LogAction "expanding zip from  $(emph $InstallerFileName) to $(emph $InstallPath)"
-    $InstallerFilePath = Join-Path $Pwd.Path $InstallerFileName
-
-    if (!(Test-Path $InstallerFilePath)) {
-        throw "Installer not found at $(emph $InstallerFilePath)"
+    Push-LogAction "expanding zip from $(em $InstallerFileName) to $(em $InstallPath)"
+    
+    if ($PSCmdlet.ShouldProcess($InstallerFileName, "expand")) {
+        if (!(Test-Path $DownloadFilePath)) {
+            throw "Installer not found at $(em $DownloadFilePath)"
+        }
+        
+        Expand-Archive $DownloadFilePath $InstallPath 
     }
-    Expand-Archive $InstallerFileName $InstallPath
+
     Pop-LogAction
 
-    Push-LogAction "adding $(emph $InstallPath) to path"
+    Push-LogAction "adding $(em $InstallPath) to path"
     Add-UserPath -PathToAdd $InstallPath -AtStart -AddToCurrentSession
+    $Ret.Paths += $InstallPath    
     Pop-LogAction
 
-    Add-UserEnvVar -Name 'PWSH_DEFAULT_PATH' -Value (Join-Path $InstallPath 'pwsh.exe')
+    Add-UserEnvVar -Name 'PWSH_DEFAULT_PATH' -Value $PwshDefaultPath
+    $Ret.Env += 'PWSH_DEFAULT_PATH' 
 
-    {
-        $ErrorActionPreference = 'Stop'
-        $PSNativeCommandUseErrorActionPreference = $true
+    if ($PSCmdlet.ShouldProcess("profile", "create (if not exists)")) {
+        {
+            $ErrorActionPreference = 'Stop'
+            $PSNativeCommandUseErrorActionPreference = $true
 
-        if (!(Test-path $PROFILE)) {
-            $ProfilePath = Split-Path $PROFILE -Parent
+            if (!(Test-path $PROFILE)) {
+                $ProfilePath = Split-Path $PROFILE -Parent
         
-            if (!(Test-path $ProfilePath)) {
-                md $ProfilePath | Out-Null
-            }
+                if (!(Test-path $ProfilePath)) {
+                    md $ProfilePath | Out-Null
+                }
         
-            $Prompt = @'
+                $Prompt = @'
 function prompt {        
     $Dollar = $IsAdmin ? '#' : '$'
     $Color = $IsAdmin ? $PSStyle.Formatting.Error : $PSStyle.Formatting.White
@@ -138,22 +152,20 @@ function prompt {
     '', $Line1, $Line2 -join "`n"
 }
 '@  
-            $Prompt | Out-File $PROFILE
-        }
-    } |  & "$InstallPath\pwsh" -NoProfile -command - #note the sneaky minus(-) = get command from stdin
+                $Prompt | Out-File $PROFILE
+            }
+        } |  & "$InstallPath\pwsh" -NoProfile -command - #note the sneaky minus(-) = get command from stdin
+    
+    }
 
     Pop-LogAction
 
-    if($null -eq $MyInvocation.PSCommandPath){
-        $Heading += ' - completed'
+    if ($null -eq $MyInvocation.PSCommandPath) {
+        $Heading += " - $(u completed)"
         Write-LogHeader $Heading 
     }
 
-    [PSCustomObject]@{
-        PwshPath = "$InstallPath\pwsh"
-        Version  = $Version
-    }
-
+    $Ret
 }
 catch {
     Clear-LogAction

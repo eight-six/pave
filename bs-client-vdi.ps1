@@ -32,7 +32,7 @@ $Configs = @{
                 Call   = 'pwsh', 'code-insiders', 'StorageExplorer', 'node', 'python'
             },
             @{
-                Path      = 'uvm'
+                Path      = 'uwm-vm'
                 DotSource = 'env'
                 Call      = @()
             }
@@ -88,7 +88,7 @@ function Invoke-Pwsh {
     )
  
  
-    Write-Verbose "ParameterSetName: $($PSCmdLet.ParameterSetName)" -verbose
+    Write-Verbose "ParameterSetName: $($PSCmdLet.ParameterSetName)" #-verbose
  
     $PwshPath = "$Env:LocalAppData\powershell\$Env:PAVE_PWSH_VERSION\pwsh"
  

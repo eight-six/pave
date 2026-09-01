@@ -100,9 +100,11 @@ $Build = $VersionParts[2]
 $DownloadFolder = "v$Major.$Minor.$Build"
 $DownloadName = "node-v$Major.$Minor.$Build-win-x64.zip"
 $DownloadUri = "$DownloadRoot/$DownloadFolder/$DownloadName"
+$DownloadLocalPath = if ($Env:PAVE_DOWNLOAD_CACHE) { $Env:PAVE_DOWNLOAD_CACHE }else { $Pwd.Path }
+$DownloadFilePath = Join-Path $DownloadLocalPath $DownloadName 
 
 Push-LogAction "Downloading node $(emph $Version) from $(emph $DownloadUri)" 
-Get-Download $DownloadUri $DownloadName
+Get-Download $DownloadUri $DownloadFilePath
 Pop-LogAction
 
 $DestinationRoot = "$env:LOCALAPPDATA\Programs\nodejs"
@@ -118,8 +120,8 @@ if (Test-Path $DestinationPath) {
     Pop-LogAction
 }
 
-Push-LogAction "Installing node $(emph $Version) from $DownloadName to $(emph $DestinationRoot)"
-Expand-Archive $DownloadName -DestinationPath $DestinationRoot
+Push-LogAction "Installing node $(emph $Version) from $DownloadFilePath to $(emph $DestinationRoot)"
+Expand-Archive $DownloadFilePath -DestinationPath $DestinationRoot
 Add-UserPath $DestinationPath -AtStart -AddToCurrentSession
 $Env:Path = "$DestinationPath;$Env:Path" # shouldn't be necessary with -AddToCurrentSession on previous line
 Pop-LogAction
@@ -136,7 +138,7 @@ if ($null -ne $Proxy) {
 
 Pop-LogAction
 
-if($null -eq $MyInvocation.PSCommandPath){
-    $Heading += ' - completed'
+if ($null -eq $MyInvocation.PSCommandPath) {
+    $Heading += " - $(u completed)"
     Write-LogHeader $Heading 
 }
